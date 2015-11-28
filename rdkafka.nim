@@ -738,368 +738,342 @@ proc rd_kafka_offset_store*(rkt: ptr rd_kafka_topic_t;
 #  Producer API                                                    *
 # 								   *
 # *****************************************************************
-#*
-#  Produce and send a single message to broker.
-# 
-#  'rkt' is the target topic which must have been previously created with
-#  `rd_kafka_topic_new()`.
-# 
-#  `rd_kafka_produce()` is an asynch non-blocking API.
-# 
-#  'partition' is the target partition, either:
-#    - RD_KAFKA_PARTITION_UA (unassigned) for
-#      automatic partitioning using the topic's partitioner function, or
-#    - a fixed partition (0..N)
-# 
-#  'msgflags' is zero or more of the following flags OR:ed together:
-#     RD_KAFKA_MSG_F_FREE - rdkafka will free(3) 'payload' when it is done
-#                           with it.
-#     RD_KAFKA_MSG_F_COPY - the 'payload' data will be copied and the 'payload'
-#                           pointer will not be used by rdkafka after the
-#                           call returns.
-# 
-#     .._F_FREE and .._F_COPY are mutually exclusive.
-# 
-#     If the function returns -1 and RD_KAFKA_MSG_F_FREE was specified, then
-#     the memory associated with the payload is still the caller's
-#     responsibility.
-# 
-#  'payload' is the message payload of size 'len' bytes.
-# 
-#  'key' is an optional message key of size 'keylen' bytes, if non-NULL it
-#  will be passed to the topic partitioner as well as be sent with the
-#  message to the broker and passed on to the consumer.
-# 
-#  'msg_opaque' is an optional application-provided per-message opaque
-#  pointer that will provided in the delivery report callback (`dr_cb`) for
-#  referencing this message.
-# 
-#  Returns 0 on success or -1 on error in which case errno is set accordingly:
-#    ENOBUFS  - maximum number of outstanding messages has been reached:
-#               "queue.buffering.max.messages"
-#               (RD_KAFKA_RESP_ERR__QUEUE_FULL)
-#    EMSGSIZE - message is larger than configured max size:
-#               "messages.max.bytes".
-#               (RD_KAFKA_RESP_ERR_MSG_SIZE_TOO_LARGE)
-#    ESRCH    - requested 'partition' is unknown in the Kafka cluster.
-#               (RD_KAFKA_RESP_ERR__UNKNOWN_PARTITION)
-#    ENOENT   - topic is unknown in the Kafka cluster.
-#               (RD_KAFKA_RESP_ERR__UNKNOWN_TOPIC)
-# 
-#  NOTE: Use `rd_kafka_errno2err()` to convert `errno` to rdkafka error code.
-# 
+
 
 const
   RD_KAFKA_MSG_F_FREE* = 0x00000001
   RD_KAFKA_MSG_F_COPY* = 0x00000002
 
-proc rd_kafka_produce*(rkt: ptr rd_kafka_topic_t; partitition: int32_t;
-                      msgflags: cint; payload: pointer; len: csize; key: pointer;
-                      keylen: csize; msg_opaque: pointer): cint {.cdecl,
-    importc: "rd_kafka_produce", dynlib: librdkafka.}
-#*
-#  Produce multiple messages.
-# 
-#  If partition is RD_KAFKA_PARTITION_UA the configured partitioner will
-#  be run for each message (slower), otherwise the messages will be enqueued
-#  to the specified partition directly (faster).
-# 
-#  The messages are provided in the array `rkmessages` of count `message_cnt`
-#  elements.
-#  The `partition` and `msgflags` are used for all provided messages.
-# 
-#  Honoured `rkmessages[]` fields are:
-#    payload,len     - Message payload and length
-#    key,key_len     - Optional message key
-#    _private        - Message opaque pointer (msg_opaque)
-#    err             - Will be set according to success or failure.
-#                      Application only needs to check for errors if
-#                      return value != `message_cnt`.
-# 
-#  Returns the number of messages succesfully enqueued for producing.
-# 
+proc rd_kafka_produce*(rkt: ptr rd_kafka_topic_t;
+                       partitition: int32_t;
+                       msgflags: cint;
+                       payload: pointer;
+                       len: csize;
+                       key: pointer;
+                       keylen: csize;
+                       msg_opaque: pointer): cint {.cdecl,
+    importc: "rd_kafka_produce", dynlib: librdkafka.} ##\
+    ##Produce and send a single message to broker.
+    ##
+    ##'rkt' is the target topic which must have been previously created with
+    ##`rd_kafka_topic_new()`.
+    ##
+    ##`rd_kafka_produce()` is an asynch non-blocking API.
+    ##
+    ##'partition' is the target partition, either:
+    ##  - RD_KAFKA_PARTITION_UA (unassigned) for
+    ##    automatic partitioning using the topic's partitioner function, or
+    ##  - a fixed partition (0..N)
+    ##
+    ##'msgflags' is zero or more of the following flags OR:ed together:
+    ##   RD_KAFKA_MSG_F_FREE - rdkafka will free(3) 'payload' when it is done
+    ##			   with it.
+    ##   RD_KAFKA_MSG_F_COPY - the 'payload' data will be copied and the 'payload'
+    ##			   pointer will not be used by rdkafka after the
+    ##			   call returns.
+    ##
+    ##   .._F_FREE and .._F_COPY are mutually exclusive.
+    ##
+    ##   If the function returns -1 and RD_KAFKA_MSG_F_FREE was specified, then
+    ##   the memory associated with the payload is still the caller's
+    ##   responsibility.
+    ##
+    ##'payload' is the message payload of size 'len' bytes.
+    ##
+    ##'key' is an optional message key of size 'keylen' bytes, if non-NULL it
+    ##will be passed to the topic partitioner as well as be sent with the
+    ##message to the broker and passed on to the consumer.
+    ##
+    ##'msg_opaque' is an optional application-provided per-message opaque
+    ##pointer that will provided in the delivery report callback (`dr_cb`) for
+    ##referencing this message.
+    ##
+    ##Returns 0 on success or -1 on error in which case errno is set accordingly:
+    ##  ENOBUFS  - maximum number of outstanding messages has been reached:
+    ##	       "queue.buffering.max.messages"
+    ##	       (RD_KAFKA_RESP_ERR__QUEUE_FULL)
+    ##  EMSGSIZE - message is larger than configured max size:
+    ##	       "messages.max.bytes".
+    ##	       (RD_KAFKA_RESP_ERR_MSG_SIZE_TOO_LARGE)
+    ##  ESRCH    - requested 'partition' is unknown in the Kafka cluster.
+    ##	       (RD_KAFKA_RESP_ERR__UNKNOWN_PARTITION)
+    ##  ENOENT   - topic is unknown in the Kafka cluster.
+    ##	       (RD_KAFKA_RESP_ERR__UNKNOWN_TOPIC)
+    ##
+    ##NOTE: Use `rd_kafka_errno2err()` to convert `errno` to rdkafka error code.
+    ##  
+ 
 
-proc rd_kafka_produce_batch*(rkt: ptr rd_kafka_topic_t; partition: int32_t;
-                            msgflags: cint; rkmessages: ptr rd_kafka_message_t;
-                            message_cnt: cint): cint {.cdecl,
-    importc: "rd_kafka_produce_batch", dynlib: librdkafka.}
+
+proc rd_kafka_produce_batch*(rkt: ptr rd_kafka_topic_t;
+                             partition: int32_t;
+                             msgflags: cint;
+                             rkmessages: ptr rd_kafka_message_t;
+                             message_cnt: cint): cint {.cdecl,
+    importc: "rd_kafka_produce_batch", dynlib: librdkafka.} ##\
+    ##Produce multiple messages.
+    ##
+    ##If partition is RD_KAFKA_PARTITION_UA the configured partitioner will
+    ##be run for each message (slower), otherwise the messages will be enqueued
+    ##to the specified partition directly (faster).
+    ##
+    ##The messages are provided in the array `rkmessages` of count `message_cnt`
+    ##elements.
+    ##The `partition` and `msgflags` are used for all provided messages.
+    ##
+    ##Honoured `rkmessages[]` fields are:
+    ##  payload,len	    - Message payload and length
+    ##  key,key_len	    - Optional message key
+    ##  _private	    - Message opaque pointer (msg_opaque)
+    ##  err		    - Will be set according to success or failure.
+    ##		      Application only needs to check for errors if
+    ##		      return value != `message_cnt`.
+    ##
+    ##Returns the number of messages succesfully enqueued for producing.
+ 
+
 #******************************************************************
 # 								   *
 #  Metadata API                                                    *
 # 								   *
 # *****************************************************************
-#*
-#  Metadata: Broker information
-# 
 
 type
   rd_kafka_metadata_broker_t* = object
-    id*: int32_t               # Broker Id 
-    host*: cstring             # Broker hostname 
-    port*: cint                # Broker listening port 
+    ##Metadata: Broker information
+    id*: int32_t               ## Broker Id 
+    host*: cstring             ## Broker hostname 
+    port*: cint                ## Broker listening port 
   
-
-#*
-#  Metadata: Partition information
-# 
-
-type
   rd_kafka_metadata_partition_t* = object
-    id*: int32_t               # Partition Id 
-    err*: rd_kafka_resp_err_t  # Partition error reported by broker 
-    leader*: int32_t           # Leader broker 
-    replica_cnt*: cint         # Number of brokers in 'replicas' 
-    replicas*: ptr int32_t      # Replica brokers 
-    isr_cnt*: cint             # Number of ISR brokers in 'isrs' 
-    isrs*: ptr int32_t          # In-Sync-Replica brokers 
+    ##Metadata: Partition information
+    id*: int32_t               ## Partition Id 
+    err*: rd_kafka_resp_err_t  ## Partition error reported by broker 
+    leader*: int32_t           ## Leader broker 
+    replica_cnt*: cint         ## Number of brokers in 'replicas' 
+    replicas*: ptr int32_t     ## Replica brokers 
+    isr_cnt*: cint             ## Number of ISR brokers in 'isrs' 
+    isrs*: ptr int32_t         ## In-Sync-Replica brokers 
   
-
-#*
-#  Metadata: Topic information
-# 
-
-type
   rd_kafka_metadata_topic_t* = object
-    topic*: cstring            # Topic name 
-    partition_cnt*: cint       # Number of partitions in 'partitions' 
-    partitions*: ptr rd_kafka_metadata_partition_t # Partitions 
-    err*: rd_kafka_resp_err_t  # Topic error reported by broker 
+    ##Metadata: Topic information
+    topic*: cstring            ## Topic name 
+    partition_cnt*: cint       ## Number of partitions in 'partitions' 
+    partitions*: ptr rd_kafka_metadata_partition_t ## Partitions 
+    err*: rd_kafka_resp_err_t  ## Topic error reported by broker 
   
-
-#*
-#  Metadata container
-# 
-
-type
   rd_kafka_metadata_t* = object
-    broker_cnt*: cint          # Number of brokers in 'brokers' 
-    brokers*: ptr rd_kafka_metadata_broker_t # Brokers 
-    topic_cnt*: cint           # Number of topics in 'topics' 
-    topics*: ptr rd_kafka_metadata_topic_t # Topics 
-    orig_broker_id*: int32_t   # Broker originating this metadata 
-    orig_broker_name*: cstring # Name of originating broker 
+    ##Metadata container
+    broker_cnt*: cint          ## Number of brokers in 'brokers' 
+    brokers*: ptr rd_kafka_metadata_broker_t ## Brokers 
+    topic_cnt*: cint           ## Number of topics in 'topics' 
+    topics*: ptr rd_kafka_metadata_topic_t ## Topics 
+    orig_broker_id*: int32_t   ## Broker originating this metadata 
+    orig_broker_name*: cstring ## Name of originating broker 
   
-
-#*
-#  Request Metadata from broker.
-# 
-#   all_topics - if non-zero: request info about all topics in cluster,
-#                if zero: only request info about locally known topics.
-#   only_rkt   - only request info about this topic
-#   metadatap  - pointer to hold metadata result.
-#                The '*metadatap' pointer must be released
-#                with rd_kafka_metadata_destroy().
-#   timeout_ms - maximum response time before failing.
-# 
-#  Returns RD_KAFKA_RESP_ERR_NO_ERROR on success (in which case *metadatap)
-#  will be set, else RD_KAFKA_RESP_ERR__TIMED_OUT on timeout or
-#  other error code on error.
-# 
-
-proc rd_kafka_metadata*(rk: ptr rd_kafka_t; all_topics: cint;
-                       only_rkt: ptr rd_kafka_topic_t;
-                       metadatap: ptr ptr rd_kafka_metadata_t; timeout_ms: cint): rd_kafka_resp_err_t {.
-    cdecl, importc: "rd_kafka_metadata", dynlib: librdkafka.}
-#*
-#  Release metadata memory.
-# 
+proc rd_kafka_metadata*(rk: ptr rd_kafka_t;
+                        all_topics: cint;
+                        only_rkt: ptr rd_kafka_topic_t;
+                        metadatap: ptr ptr rd_kafka_metadata_t;
+                        timeout_ms: cint): rd_kafka_resp_err_t {.
+    cdecl, importc: "rd_kafka_metadata", dynlib: librdkafka.} ##\
+    ##Request Metadata from broker.
+    ##
+    ## all_topics - if non-zero: request info about all topics in cluster,
+    ##		if zero: only request info about locally known topics.
+    ## only_rkt   - only request info about this topic
+    ## metadatap  - pointer to hold metadata result.
+    ##		The `*metadatap` pointer must be released
+    ##		with `rd_kafka_metadata_destroy()`.
+    ## timeout_ms - maximum response time before failing.
+    ##
+    ##Returns RD_KAFKA_RESP_ERR_NO_ERROR on success (in which case `*metadatap`)
+    ##will be set, else `RD_KAFKA_RESP_ERR__TIMED_OUT` on timeout or
+    ##other error code on error.
+ 
 
 proc rd_kafka_metadata_destroy*(metadata: ptr rd_kafka_metadata_t) {.cdecl,
-    importc: "rd_kafka_metadata_destroy", dynlib: librdkafka.}
+    importc: "rd_kafka_metadata_destroy", dynlib: librdkafka.} ##Release metadata memory.
+
 #******************************************************************
 # 								   *
 #  Misc API                                                        *
 # 								   *
 # *****************************************************************
-#*
-#  Polls the provided kafka handle for events.
-# 
-#  Events will cause application provided callbacks to be called.
-# 
-#  The 'timeout_ms' argument specifies the minimum amount of time
-#  (in milliseconds) that the call will block waiting for events.
-#  For non-blocking calls, provide 0 as 'timeout_ms'.
-#  To wait indefinately for an event, provide -1.
-# 
-#  Events:
-#    - delivery report callbacks  (if dr_cb is configured) [producer]
-#    - error callbacks (if error_cb is configured) [producer & consumer]
-#    - stats callbacks (if stats_cb is configured) [producer & consumer]
-# 
-#  Returns the number of events served.
-# 
 
 proc rd_kafka_poll*(rk: ptr rd_kafka_t; timeout_ms: cint): cint {.cdecl,
-    importc: "rd_kafka_poll", dynlib: librdkafka.}
-#*
-#  Adds a one or more brokers to the kafka handle's list of initial brokers.
-#  Additional brokers will be discovered automatically as soon as rdkafka
-#  connects to a broker by querying the broker metadata.
-# 
-#  If a broker name resolves to multiple addresses (and possibly
-#  address families) all will be used for connection attempts in
-#  round-robin fashion.
-# 
-#  'brokerlist' is a ,-separated list of brokers in the format:
-#    <host1>[:<port1>],<host2>[:<port2>]...
-# 
-#  Returns the number of brokers successfully added.
-# 
-#  NOTE: Brokers may also be defined with the 'metadata.broker.list'
-#        configuration property.
-# 
+    importc: "rd_kafka_poll", dynlib: librdkafka.} ##\
+    ##Polls the provided kafka handle for events.
+    ##
+    ##Events will cause application provided callbacks to be called.
+    ##
+    ##The 'timeout_ms' argument specifies the minimum amount of time
+    ##(in milliseconds) that the call will block waiting for events.
+    ##For non-blocking calls, provide 0 as 'timeout_ms'.
+    ##To wait indefinately for an event, provide -1.
+    ##
+    ##Events:
+    ##  - delivery report callbacks	 (if dr_cb is configured) [producer]
+    ##  - error callbacks (if error_cb is configured) [producer & consumer]
+    ##  - stats callbacks (if stats_cb is configured) [producer & consumer]
+    ##
+    ##Returns the number of events served.
+ 
+
+##	configuration property.
 
 proc rd_kafka_brokers_add*(rk: ptr rd_kafka_t; brokerlist: cstring): cint {.cdecl,
-    importc: "rd_kafka_brokers_add", dynlib: librdkafka.}
-#*
-#  Set logger function.
-#  The default is to print to stderr, but a syslog logger is also available,
-#  see rd_kafka_log_(print|syslog) for the builtin alternatives.
-#  Alternatively the application may provide its own logger callback.
-#  Or pass 'func' as NULL to disable logging.
-# 
-#  NOTE: 'rk' may be passed as NULL in the callback.
-# 
+    importc: "rd_kafka_brokers_add", dynlib: librdkafka.} ##\
+    ##Adds a one or more brokers to the kafka handle's list of initial brokers.
+    ##Additional brokers will be discovered automatically as soon as rdkafka
+    ##connects to a broker by querying the broker metadata.
+    ##
+    ##If a broker name resolves to multiple addresses (and possibly
+    ##address families) all will be used for connection attempts in
+    ##round-robin fashion.
+    ##
+    ##'brokerlist' is a ,-separated list of brokers in the format:
+    ##  <host1>[:<port1>],<host2>[:<port2>]...
+    ##
+    ##Returns the number of brokers successfully added.
+    ##
+    ##NOTE: Brokers may also be defined with the 'metadata.broker.list'
+ 
 
 proc rd_kafka_set_logger*(rk: ptr rd_kafka_t; `func`: proc (rk: ptr rd_kafka_t;
     level: cint; fac: cstring; buf: cstring) {.cdecl.}) {.cdecl,
-    importc: "rd_kafka_set_logger", dynlib: librdkafka.}
-#*
-#  Specifies the maximum logging level produced by
-#  internal kafka logging and debugging.
-#  If the 'debug' configuration property is set the level is automatically
-#  adjusted to LOG_DEBUG (7).
-# 
+    importc: "rd_kafka_set_logger", dynlib: librdkafka.} ##\
+    ##Set logger function.
+    ##The default is to print to stderr, but a syslog logger is also available,
+    ##see rd_kafka_log_(print|syslog) for the builtin alternatives.
+    ##Alternatively the application may provide its own logger callback.
+    ##Or pass 'func' as NULL to disable logging.
+    ##
+    ##NOTE: 'rk' may be passed as NULL in the callback.
 
 proc rd_kafka_set_log_level*(rk: ptr rd_kafka_t; level: cint) {.cdecl,
-    importc: "rd_kafka_set_log_level", dynlib: librdkafka.}
-#*
-#  Builtin (default) log sink: print to stderr
-# 
+    importc: "rd_kafka_set_log_level", dynlib: librdkafka.} ##\
+    ##Specifies the maximum logging level produced by
+    ##internal kafka logging and debugging.
+    ##If the 'debug' configuration property is set the level is automatically
+    ##adjusted to LOG_DEBUG (7).
 
 proc rd_kafka_log_print*(rk: ptr rd_kafka_t; level: cint; fac: cstring; buf: cstring) {.
-    cdecl, importc: "rd_kafka_log_print", dynlib: librdkafka.}
-#*
-#  Builtin log sink: print to syslog.
-# 
+    cdecl, importc: "rd_kafka_log_print", dynlib: librdkafka.} ##\
+    ##Builtin (default) log sink: print to stderr
 
 proc rd_kafka_log_syslog*(rk: ptr rd_kafka_t; level: cint; fac: cstring; buf: cstring) {.
-    cdecl, importc: "rd_kafka_log_syslog", dynlib: librdkafka.}
-#*
-#  Returns the current out queue length:
-#  messages waiting to be sent to, or acknowledged by, the broker.
-# 
+    cdecl, importc: "rd_kafka_log_syslog", dynlib: librdkafka.} ##\
+    ##Builtin log sink: print to syslog.
 
 proc rd_kafka_outq_len*(rk: ptr rd_kafka_t): cint {.cdecl,
-    importc: "rd_kafka_outq_len", dynlib: librdkafka.}
-#*
-#  Dumps rdkafka's internal state for handle 'rk' to stream 'fp'
-#  This is only useful for debugging rdkafka, showing state and statistics
-#  for brokers, topics, partitions, etc.
-# 
+    importc: "rd_kafka_outq_len", dynlib: librdkafka.} ##\
+    ##Returns the current out queue length:
+    ##messages waiting to be sent to, or acknowledged by, the broker.
 
 proc rd_kafka_dump*(fp: ptr FILE; rk: ptr rd_kafka_t) {.cdecl, importc: "rd_kafka_dump",
-    dynlib: librdkafka.}
-#*
-#  Retrieve the current number of threads in use by librdkafka.
-#  Used by regression tests.
-# 
+    dynlib: librdkafka.}  ##\
+    ##Dumps rdkafka's internal state for handle 'rk' to stream 'fp'
+    ##This is only useful for debugging rdkafka, showing state and statistics
+    ##for brokers, topics, partitions, etc.
+
 
 proc rd_kafka_thread_cnt*(): cint {.cdecl, importc: "rd_kafka_thread_cnt",
-                                 dynlib: librdkafka.}
-#*
-#  Wait for all rd_kafka_t objects to be destroyed.
-#  Returns 0 if all kafka objects are now destroyed, or -1 if the
-#  timeout was reached.
-#  Since `rd_kafka_destroy()` is an asynch operation the 
-#  `rd_kafka_wait_destroyed()` function can be used for applications where
-#  a clean shutdown is required.
-# 
+                                 dynlib: librdkafka.} ##\
+    ##Retrieve the current number of threads in use by librdkafka.
+    ##Used by regression tests.
 
 proc rd_kafka_wait_destroyed*(timeout_ms: cint): cint {.cdecl,
-    importc: "rd_kafka_wait_destroyed", dynlib: librdkafka.}
+    importc: "rd_kafka_wait_destroyed", dynlib: librdkafka.} ##\
+    ##Wait for all rd_kafka_t objects to be destroyed.
+    ##Returns 0 if all kafka objects are now destroyed, or -1 if the
+    ##timeout was reached.
+    ##Since `rd_kafka_destroy()` is an asynch operation the 
+    ##`rd_kafka_wait_destroyed()` function can be used for applications where
+    ##a clean shutdown is required.
 
-let ee = rd_kafka_version_str()
-echo($ee)
 
-# kafka handle
-let conf = rd_kafka_conf_new()
-var errstr:cstring= ""
-# var confres =rd_kafka_conf_set(conf,
-#                           "serializer.class",
-#                           "kafka.serializer.DefaultEncoder",     
-#                           errstr,512)
-# echo ($errstr)
-let kp = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_PRODUCER,conf,errstr,512)
+# let ee = rd_kafka_version_str()
+# echo($ee)
 
-echo($errstr)
+# # kafka handle
+# let conf = rd_kafka_conf_new()
+# var errstr:cstring= ""
+# # var confres =rd_kafka_conf_set(conf,
+# #                           "serializer.class",
+# #                           "kafka.serializer.DefaultEncoder",     
+# #                           errstr,512)
+# # echo ($errstr)
+# let kp = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_PRODUCER,conf,errstr,512)
 
-# broker
-var numbrokers = rd_kafka_brokers_add(kp,"localhost:9092")
-echo("brokers added: "& $numbrokers)
+# echo($errstr)
 
-# topic
-let topic_conf = rd_kafka_topic_conf_new()
-let topic_name:cstring = "test_topic"
-let topic = rd_kafka_topic_new(kp,topic_name,topic_conf)
+# # broker
+# var numbrokers = rd_kafka_brokers_add(kp,"localhost:9092")
+# echo("brokers added: "& $numbrokers)
 
-# send some messages
-proc produce():string =
-  let part:int32 = 1
-  for i in 1..10:
-    var message:cstring = "test didier! " & $i 
+# # topic
+# let topic_conf = rd_kafka_topic_conf_new()
+# let topic_name:cstring = "test_topic"
+# let topic = rd_kafka_topic_new(kp,topic_name,topic_conf)
+
+# # send some messages
+# proc produce():string =
+#   let part:int32 = 1
+#   for i in 1..10:
+#     var message:cstring = "test didier! " & $i 
     
-    var p = rd_kafka_produce(topic,part,cast[cint](RD_KAFKA_MSG_F_COPY),
-                             message,
-                             message.len+1,
-                             nil,0,nil)
-    echo("add result " & $p)
+#     var p = rd_kafka_produce(topic,part,cast[cint](RD_KAFKA_MSG_F_COPY),
+#                              message,
+#                              message.len+1,
+#                              nil,0,nil)
+#     echo("add result " & $p)
  
-proc message_to_str(m: ptr rd_kafka_message_t): cstring =
-  echo ("m len"& $m.len)
-  echo("m partition: " & $m.partition)
-  let err = rd_kafka_message_errstr(m)
-  if err != nil or err.len > 0:
-    echo("error: " & $err)
-    return cast[string](err)
+# proc message_to_str(m: ptr rd_kafka_message_t): cstring =
+#   echo ("m len"& $m.len)
+#   echo("m partition: " & $m.partition)
+#   let err = rd_kafka_message_errstr(m)
+#   if err != nil or err.len > 0:
+#     echo("error: " & $err)
+#     return cast[string](err)
     
-  var res = cast[cstring](m.payload)
-  echo("payload: " & $res)
-  echo("offset: " & $m.offset)
-  #result = "dsd"
-  result = res
+#   var res = cast[cstring](m.payload)
+#   echo("payload: " & $res)
+#   echo("offset: " & $m.offset)
+#   #result = "dsd"
+#   result = res
   
-proc consume(): string =
-  # kafka handle
-  let conf = rd_kafka_conf_new()
-  var errstr:cstring= ""
-  let kc = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_CONSUMER,conf,errstr,512)
+# proc consume(): string =
+#   # kafka handle
+#   let conf = rd_kafka_conf_new()
+#   var errstr:cstring= ""
+#   let kc = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_CONSUMER,conf,errstr,512)
 
-  echo($errstr)
+#   echo($errstr)
 
-  # broker
-  var numbrokers = rd_kafka_brokers_add(kc,"localhost:9092")
-  echo("brokers added: "& $numbrokers)
+#   # broker
+#   var numbrokers = rd_kafka_brokers_add(kc,"localhost:9092")
+#   echo("brokers added: "& $numbrokers)
 
-  # topic
-  let topic_conf = rd_kafka_topic_conf_new()
-  let topic_name:cstring = "test_topic"
-  let topic = rd_kafka_topic_new(kc,topic_name,topic_conf)
+#   # topic
+#   let topic_conf = rd_kafka_topic_conf_new()
+#   let topic_name:cstring = "test_topic"
+#   let topic = rd_kafka_topic_new(kc,topic_name,topic_conf)
  
-  # start consuming
-  let part:int32 = 1
-  var res= rd_kafka_consume_start(topic,
-                                  part,
-                                  RD_KAFKA_OFFSET_TAIL(5)
-                                  #cast[int64_t](2)
-  ) 
-  echo("sart consuming value: " & $res)
-  var message = rd_kafka_consume(topic, part, 1000)
-  var ms = message_to_str(message)
-  echo("message: " & $ms)
-  # stop consumming
-  discard rd_kafka_consume_stop(topic, part)
-  result = ""
+#   # start consuming
+#   let part:int32 = 1
+#   var res= rd_kafka_consume_start(topic,
+#                                   part,
+#                                   RD_KAFKA_OFFSET_TAIL(5)
+#                                   #cast[int64_t](2)
+#   ) 
+#   echo("sart consuming value: " & $res)
+#   var message = rd_kafka_consume(topic, part, 1000)
+#   var ms = message_to_str(message)
+#   echo("message: " & $ms)
+#   # stop consumming
+#   discard rd_kafka_consume_stop(topic, part)
+#   result = ""
 
-#discard produce()
-discard consume()
+# #discard produce()
+# discard consume()
