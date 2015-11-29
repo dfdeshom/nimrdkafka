@@ -227,10 +227,8 @@ proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
       ##Returns the librdkafka version as integer.
 
-
 proc rd_kafka_version_str*(): cstring {.cdecl, importc: "rd_kafka_version_str",
                                      dynlib: librdkafka.} ## Returns the librdkafka version as string.
-
 
 proc rd_kafka_err2str*(err: RDKResponseError): cstring {.cdecl,
     importc: "rd_kafka_err2str", dynlib: librdkafka.} ## \
@@ -254,8 +252,6 @@ proc rd_kafka_errno2err*(errnox: cint): RDKResponseError {.cdecl,
 #  Kafka messages                                                  *
 # 								   *
 # *****************************************************************
-
-  
 proc rd_kafka_message_destroy*(rkmessage: PRDKMessage) {.cdecl,
     importc: "rd_kafka_message_destroy", dynlib: librdkafka.} ##\
     ## Frees resources for 'rkmessage' and hands ownership back to rdkafka.
@@ -274,8 +270,6 @@ proc rd_kafka_message_errstr*(rkmessage: PRDKMessage): cstring {.inline,
 #  Main configuration property interface			   *
 # 								   *
 # *****************************************************************
-
-
 proc rd_kafka_conf_new*(): PRDKConf {.cdecl, importc: "rd_kafka_conf_new",
     dynlib: librdkafka.} ## \
     ##Create configuration object.
@@ -307,7 +301,6 @@ proc rd_kafka_conf_destroy*(conf: PRDKConf) {.cdecl,
 proc rd_kafka_conf_dup*(conf: PRDKConf): PRDKConf {.cdecl,
     importc: "rd_kafka_conf_dup", dynlib: librdkafka.} ##\
     ##Creates a copy/duplicate of configuration object 'conf'.
-
 
 proc rd_kafka_conf_set*(conf: PRDKConf; name: cstring; value: cstring;
                        errstr: cstring; errstr_size: csize): RDKConfRes {.
@@ -348,8 +341,6 @@ proc rd_kafka_conf_set_log_cb*(conf: PRDKConf; log_cb: proc (
     ##Or pass 'func' as NULL to disable logging.
     ##This is the configuration alternative to `rd_kafka_set_logger()`.
 
-
-
 proc rd_kafka_conf_set_stats_cb*(conf: PRDKConf; stats_cb: proc (
     rk: PRDK; json: cstring; json_len: csize; opaque: pointer): cint {.cdecl.}) {.
     cdecl, importc: "rd_kafka_conf_set_stats_cb", dynlib: librdkafka.} ##\
@@ -366,7 +357,6 @@ proc rd_kafka_conf_set_stats_cb*(conf: PRDKConf; stats_cb: proc (
     ##it at a later time it must return 1 from the `stats_cb`.
     ##If the application returns 0 from the `stats_cb` then librdkafka
     ##will immediately free the 'json' pointer.
- 
 
 proc rd_kafka_conf_set_socket_cb*(conf: PRDKConf; socket_cb: proc (
     domain: cint; `type`: cint; protocol: cint; opaque: pointer): cint {.cdecl.}) {.cdecl,
@@ -431,7 +421,6 @@ proc rd_kafka_conf_properties_show*(fp: ptr FILE) {.cdecl,
 #  Topic configuration property interface			   *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_topic_conf_new*(): PRDKTopicConf {.cdecl,
     importc: "rd_kafka_topic_conf_new", dynlib: librdkafka.} ##\
     ##Create topic configuration object
@@ -455,14 +444,12 @@ proc rd_kafka_topic_conf_set*(conf: PRDKTopicConf ;
     ##  'topic_conf' should have been previously set up
     ##   with `rd_kafka_topic_conf_new()`.
     ##  Returns RDKConfRes to indicate success or failure.
- 
 
 proc rd_kafka_topic_conf_set_opaque*(conf: PRDKTopicConf ;
                                     opaque: pointer) {.cdecl,
     importc: "rd_kafka_topic_conf_set_opaque", dynlib: librdkafka.} ##\
     ##Sets the application's opaque pointer that will be passed to all topic
     ##callbacks as the 'rkt_opaque' argument.
-
 
 proc rd_kafka_topic_conf_set_partitioner_cb*(
     topic_conf: PRDKTopicConf ; partitioner: proc (
@@ -492,7 +479,6 @@ proc rd_kafka_topic_partition_available*(rkt: PRDKTopic;
 #  Partitioners provided by rdkafka                                *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_msg_partitioner_random*(rkt: PRDKTopic;
                                       key: pointer;
                                       keylen: csize;
@@ -503,9 +489,6 @@ proc rd_kafka_msg_partitioner_random*(rkt: PRDKTopic;
     ##Random partitioner.
     ##This is the default partitioner.
     ##Returns a random partition between 0 and 'partition_cnt'-1.
- 
-
-## 
 
 proc rd_kafka_msg_partitioner_consistent*(rkt: PRDKTopic;
                                           key: pointer;
@@ -523,7 +506,6 @@ proc rd_kafka_msg_partitioner_consistent*(rkt: PRDKTopic;
 #  Kafka object handle                                             *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_new*(`type`: RDKType;
                    conf: PRDKConf;
                    errstr: cstring;
@@ -541,7 +523,6 @@ proc rd_kafka_new*(`type`: RDKType;
     ##creation of a new handle fails. In which case the function returns NULL.
     ##Returns the Kafka handle on success or NULL on error.
     ##To destroy the Kafka handle, use rd_kafka_destroy().
- 
 
 proc rd_kafka_destroy*(rk: RDK) {.cdecl, importc: "rd_kafka_destroy",
     dynlib: librdkafka.} ##Destroy Kafka handle.
@@ -561,7 +542,6 @@ proc rd_kafka_topic_new*(rk: PRDK;
     ##destroyed by the application sub-sequently.
     ##See `rd_kafka_topic_conf_set()` et.al for more information.
     ##Returns the new topic handle or NULL on error (see `errno`).
- 
 
 proc rd_kafka_topic_destroy*(rkt: PRDKTopic) {.cdecl,
     importc: "rd_kafka_topic_destroy", dynlib: librdkafka.} ##\
@@ -574,13 +554,11 @@ proc rd_kafka_topic_opaque*(rkt: PRDKTopic): pointer {.cdecl,
     importc: "rd_kafka_topic_opaque", dynlib: librdkafka.} ##\
     ##Get the rkt_opaque pointer that was set in the topic configuration.
 
-
 #******************************************************************
 # 								   *
 #  Queue API                                                       *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_queue_new*(rk: RDK): PRDKQueue {.cdecl,
     importc: "rd_kafka_queue_new", dynlib: librdkafka.} ##\
     ##Create a new message queue.
@@ -601,15 +579,11 @@ proc rd_kafka_queue_destroy*(rkqu: PRDKQueue) {.cdecl,
 #  Consumer API                                                    *
 # 								   *
 # *****************************************************************
-
-
 template RD_KAFKA_OFFSET_TAIL*(CNT: expr): expr =
   ##Start consuming `CNT` messages from topic's current `.._END` offset.
   ##That is, if current end offset is 12345 and `CNT` is 200, it will start
   ##consuming from offset 12345-200 = 12145. 
   (RD_KAFKA_OFFSET_TAIL_BASE - (CNT))
-
-
 
 proc rd_kafka_consume_start*(rkt: PRDKTopic;
                              partition: int32_t;
@@ -630,9 +604,6 @@ proc rd_kafka_consume_start*(rkt: PRDKTopic;
     ##topic and partition without stopping consumption first with
     ##`rd_kafka_consume_stop()`.
     ## eRurns 0 on success or -1 on error (see `errno`).
-    
- 
-
 
 proc rd_kafka_consume_start_queue*(rkt: PRDKTopic;
                                    partition: int32_t;
@@ -650,8 +621,6 @@ proc rd_kafka_consume_start_queue*(rkt: PRDKTopic;
     ##`rd_kafka_consume_start()` and `rd_kafka_consume_start_queue()` must not
     ##be combined for the same topic and partition.
 
-
-
 proc rd_kafka_consume_stop*(rkt: PRDKTopic; partition: int32_t): cint {.
     cdecl, importc: "rd_kafka_consume_stop", dynlib: librdkafka.} ##\
     ##Stop consuming messages for topic 'rkt' and 'partition', purging
@@ -659,8 +628,6 @@ proc rd_kafka_consume_stop*(rkt: PRDKTopic; partition: int32_t): cint {.
     ##The application needs to be stop all consumers before calling
     ##`rd_kafka_destroy()` on the main object handle.
     ##Returns 0 on success or -1 on error (see `errno`).
- 
-
 
 proc rd_kafka_consume*(rkt: PRDKTopic;
                        partition: int32_t;
@@ -704,9 +671,6 @@ proc rd_kafka_consume_callback*(rkt: PRDKTopic;
     ##Returns the number of messages processed or -1 on error.
     ##See: rd_kafka_consume
  
-
-
- 
 proc rd_kafka_consume_batch*(rkt: PRDKTopic; partition: int32_t;
                             timeout_ms: cint;
                             rkmessages: ptr PRDKMessage;
@@ -728,8 +692,6 @@ proc rd_kafka_consume_batch*(rkt: PRDKTopic; partition: int32_t;
     ##or -1 on error (same error codes as for `rd_kafka_consume()`.
     ##See: rd_kafka_consume
 
-
-#*
 #  Queue consumers
 # 
 #  The following `..._queue()` functions are analogue to the functions above
@@ -754,10 +716,6 @@ proc rd_kafka_consume_callback_queue*(rkqu: PRDKQueue; timeout_ms: cint;
     importc: "rd_kafka_consume_callback_queue", dynlib: librdkafka.} ##\
     ##See `rd_kafka_consume_callback()` above.
 
-#*
-#  Topic+partition offset store.
-
-
 proc rd_kafka_offset_store*(rkt: PRDKTopic;
                             partition: int32_t;
                             offset: int64_t): RDKResponseError {.cdecl,
@@ -776,7 +734,6 @@ proc rd_kafka_offset_store*(rkt: PRDKTopic;
 #  Producer API                                                    *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_produce*(rkt: PRDKTopic;
                        partitition: int32_t;
                        msgflags: cint;
@@ -835,8 +792,6 @@ proc rd_kafka_produce*(rkt: PRDKTopic;
     ##
     ##NOTE: Use `rd_kafka_errno2err()` to convert `errno` to rdkafka error code.
     ##  
- 
-
 
 proc rd_kafka_produce_batch*(rkt: PRDKTopic;
                              partition: int32_t;
@@ -863,15 +818,12 @@ proc rd_kafka_produce_batch*(rkt: PRDKTopic;
     ##		      return value != `message_cnt`.
     ##
     ##Returns the number of messages succesfully enqueued for producing.
- 
 
 #******************************************************************
 # 								   *
 #  Metadata API                                                    *
 # 								   *
 # *****************************************************************
-
-  
 proc rd_kafka_metadata*(rk: PRDK;
                         all_topics: cint;
                         only_rkt: PRDKTopic;
@@ -891,7 +843,6 @@ proc rd_kafka_metadata*(rk: PRDK;
     ##Returns RD_KAFKA_RESP_ERR_NO_ERROR on success (in which case `*metadatap`)
     ##will be set, else `RD_KAFKA_RESP_ERR__TIMED_OUT` on timeout or
     ##other error code on error.
- 
 
 proc rd_kafka_metadata_destroy*(metadata: PRDKMetadata) {.cdecl,
     importc: "rd_kafka_metadata_destroy", dynlib: librdkafka.} ##Release metadata memory.
@@ -901,7 +852,6 @@ proc rd_kafka_metadata_destroy*(metadata: PRDKMetadata) {.cdecl,
 #  Misc API                                                        *
 # 								   *
 # *****************************************************************
-
 proc rd_kafka_poll*(rk: PRDK; timeout_ms: cint): cint {.cdecl,
     importc: "rd_kafka_poll", dynlib: librdkafka.} ##\
     ##Polls the provided kafka handle for events.
@@ -919,9 +869,6 @@ proc rd_kafka_poll*(rk: PRDK; timeout_ms: cint): cint {.cdecl,
     ##  - stats callbacks (if stats_cb is configured) [producer & consumer]
     ##
     ##Returns the number of events served.
- 
-
-##	configuration property.
 
 proc rd_kafka_brokers_add*(rk: PRDK; brokerlist: cstring): cint {.cdecl,
     importc: "rd_kafka_brokers_add", dynlib: librdkafka.} ##\
@@ -939,7 +886,6 @@ proc rd_kafka_brokers_add*(rk: PRDK; brokerlist: cstring): cint {.cdecl,
     ##Returns the number of brokers successfully added.
     ##
     ##NOTE: Brokers may also be defined with the 'metadata.broker.list'
- 
 
 proc rd_kafka_set_logger*(rk: PRDK; `func`: proc (rk: PRDK;
     level: cint; fac: cstring; buf: cstring) {.cdecl.}) {.cdecl,
@@ -977,7 +923,6 @@ proc rd_kafka_dump*(fp: ptr FILE; rk: RDK) {.cdecl, importc: "rd_kafka_dump",
     ##Dumps rdkafka's internal state for handle 'rk' to stream 'fp'
     ##This is only useful for debugging rdkafka, showing state and statistics
     ##for brokers, topics, partitions, etc.
-
 
 proc rd_kafka_thread_cnt*(): cint {.cdecl, importc: "rd_kafka_thread_cnt",
                                  dynlib: librdkafka.} ##\
