@@ -7,7 +7,7 @@ echo("librdkafak version: " & $ee)
 proc produce():string =
   let conf = rd_kafka_conf_new()
   var errstr:cstring= ""
-  let kp = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_PRODUCER,conf,errstr,512)
+  let kp = rd_kafka_new(RDKType.RD_KAFKA_PRODUCER,conf,errstr,512)
 
   # broker
   var numbrokers = rd_kafka_brokers_add(kp,"localhost:9092")
@@ -28,7 +28,7 @@ proc produce():string =
                              nil,0,nil)
     echo("add result " & $p)
  
-proc message_to_str(m: ptr rd_kafka_message_t): cstring =
+proc message_to_str(m: PRDKMessage): cstring =
   echo ("m len"& $m.len)
   echo("m partition: " & $m.partition)
   let err = rd_kafka_message_errstr(m)
@@ -46,7 +46,7 @@ proc consume(): string =
   # kafka handle
   let conf = rd_kafka_conf_new()
   var errstr:cstring= ""
-  let kc = rd_kafka_new(rd_kafka_type_t.RD_KAFKA_CONSUMER,conf,errstr,512)
+  let kc = rd_kafka_new(RDKType.RD_KAFKA_CONSUMER,conf,errstr,512)
 
   echo($errstr)
 
@@ -75,4 +75,4 @@ proc consume(): string =
   result = ""
 
 #discard produce()
-#discard consume()
+discard consume()
