@@ -33,23 +33,19 @@
 #  enum, define, etc.
 # 
 
-when defined(_MSC_VER):
-  type
-    ssize_t* = SSIZE_T
-  const
-    RD_UNUSED* = true
-    RD_DEPRECATED* = true
-  when defined(LIBRDKAFKA_EXPORTS):
-    const
-      RD_EXPORT* = __declspec(dllexport)
-  else:
-    const
-      RD_EXPORT* = __declspec(dllimport)
-else:
-  const
-    RD_UNUSED* = __attribute__((unused))
-    RD_EXPORT* = true
-    RD_DEPRECATED* = __attribute__((deprecated))
+{.deadCodeElim: on.}
+{.passL: "-lz -lpthread -lrt" .}
+
+when defined(windows): 
+  const 
+    librdkafka* = "librdkafka.dll"
+elif defined(macosx): 
+  const 
+    librdkafka* = "librdkafka.dylib"
+else: 
+  const 
+    librdkafka* = "librdkafka.so.1"
+    
 #*
 #  librdkafka version
 # 
@@ -103,11 +99,11 @@ const
 # Private types to provide ABI compatibility 
 
 type
-  rd_kafka_t* = rd_kafka_s
-  rd_kafka_topic_t* = rd_kafka_topic_s
-  rd_kafka_conf_t* = rd_kafka_conf_s
-  rd_kafka_topic_conf_t* = rd_kafka_topic_conf_s
-  rd_kafka_queue_t* = rd_kafka_queue_s
+  rd_kafka_t* = object
+  rd_kafka_topic_t* = object
+  rd_kafka_conf_t* = object
+  rd_kafka_topic_conf_t* = object
+  rd_kafka_queue_t* = object
 
 #*
 #  Kafka protocol error codes (version 0.8)
@@ -115,55 +111,55 @@ type
 
 type                          # Internal errors to rdkafka: 
   rd_kafka_resp_err_t* {.size: sizeof(cint).} = enum
-    RD_KAFKA_RESP_ERR__BEGIN = - 200, # begin internal error codes 
-    RD_KAFKA_RESP_ERR__BAD_MSG = - 199, # Received message is incorrect 
-    RD_KAFKA_RESP_ERR__BAD_COMPRESSION = - 198, # Bad/unknown compression 
-    RD_KAFKA_RESP_ERR__DESTROY = - 197, # Broker is going away 
-    RD_KAFKA_RESP_ERR__FAIL = - 196, # Generic failure 
-    RD_KAFKA_RESP_ERR__TRANSPORT = - 195, # Broker transport error 
-    RD_KAFKA_RESP_ERR__CRIT_SYS_RESOURCE = - 194, # Critical system resource
+    RD_KAFKA_RESP_ERR_BEGIN = - 200, # begin internal error codes 
+    RD_KAFKA_RESP_ERR_BAD_MSG = - 199, # Received message is incorrect 
+    RD_KAFKA_RESP_ERR_BAD_COMPRESSION = - 198, # Bad/unknown compression 
+    RD_KAFKA_RESP_ERR_DESTROY = - 197, # Broker is going away 
+    RD_KAFKA_RESP_ERR_FAIL = - 196, # Generic failure 
+    RD_KAFKA_RESP_ERR_TRANSPORT = - 195, # Broker transport error 
+    RD_KAFKA_RESP_ERR_CRIT_SYS_RESOURCE = - 194, # Critical system resource
                                               #             failure 
-    RD_KAFKA_RESP_ERR__RESOLVE = - 193, # Failed to resolve broker 
-    RD_KAFKA_RESP_ERR__MSG_TIMED_OUT = - 192, # Produced message timed out
-    RD_KAFKA_RESP_ERR__PARTITION_EOF = - 191, # Reached the end of the
+    RD_KAFKA_RESP_ERR_RESOLVE = - 193, # Failed to resolve broker 
+    RD_KAFKA_RESP_ERR_MSG_TIMED_OUT = - 192, # Produced message timed out
+    RD_KAFKA_RESP_ERR_PARTITION_EOF = - 191, # Reached the end of the
                                           #         topic+partition queue on
                                           #         the broker.
                                           #         Not really an error. 
-    RD_KAFKA_RESP_ERR__UNKNOWN_PARTITION = - 190, # Permanent:
+    RD_KAFKA_RESP_ERR_UNKNOWN_PARTITION = - 190, # Permanent:
                                               #             Partition does not
                                               #             exist in cluster. 
-    RD_KAFKA_RESP_ERR__FS = - 189, # File or filesystem error 
-    RD_KAFKA_RESP_ERR__UNKNOWN_TOPIC = - 188, # Permanent:
+    RD_KAFKA_RESP_ERR_FS = - 189, # File or filesystem error 
+    RD_KAFKA_RESP_ERR_UNKNOWN_TOPIC = - 188, # Permanent:
                                           #         Topic does not exist
                                           #         in cluster. 
-    RD_KAFKA_RESP_ERR__ALL_BROKERS_DOWN = - 187, # All broker connections
+    RD_KAFKA_RESP_ERR_ALL_BROKERS_DOWN = - 187, # All broker connections
                                              #            are down. 
-    RD_KAFKA_RESP_ERR__INVALID_ARG = - 186, # Invalid argument, or
+    RD_KAFKA_RESP_ERR_INVALID_ARG = - 186, # Invalid argument, or
                                         #        invalid configuration 
-    RD_KAFKA_RESP_ERR__TIMED_OUT = - 185, # Operation timed out 
-    RD_KAFKA_RESP_ERR__QUEUE_FULL = - 184, # Queue is full 
-    RD_KAFKA_RESP_ERR__ISR_INSUFF = - 183, # ISR count < required.acks 
-    RD_KAFKA_RESP_ERR__NODE_UPDATE = - 182, # Broker node update 
-    RD_KAFKA_RESP_ERR__SSL = - 181, # SSL error 
-    RD_KAFKA_RESP_ERR__WAIT_COORD = - 180, # Waiting for coordinator
+    RD_KAFKA_RESP_ERR_TIMED_OUT = - 185, # Operation timed out 
+    RD_KAFKA_RESP_ERR_QUEUE_FULL = - 184, # Queue is full 
+    RD_KAFKA_RESP_ERR_ISR_INSUFF = - 183, # ISR count < required.acks 
+    RD_KAFKA_RESP_ERR_NODE_UPDATE = - 182, # Broker node update 
+    RD_KAFKA_RESP_ERR_SSL = - 181, # SSL error 
+    RD_KAFKA_RESP_ERR_WAIT_COORD = - 180, # Waiting for coordinator
                                        #                                                  to become available. 
-    RD_KAFKA_RESP_ERR__UNKNOWN_GROUP = - 179, # Unknown client group 
-    RD_KAFKA_RESP_ERR__IN_PROGRESS = - 178, # Operation in progress 
-    RD_KAFKA_RESP_ERR__PREV_IN_PROGRESS = - 177, # Previous operation
+    RD_KAFKA_RESP_ERR_UNKNOWN_GROUP = - 179, # Unknown client group 
+    RD_KAFKA_RESP_ERR_IN_PROGRESS = - 178, # Operation in progress 
+    RD_KAFKA_RESP_ERR_PREV_IN_PROGRESS = - 177, # Previous operation
                                              #                                                      in progress, wait for
                                              #                                                      it to finish. 
-    RD_KAFKA_RESP_ERR__EXISTING_SUBSCRIPTION = - 176, # This operation
+    RD_KAFKA_RESP_ERR_EXISTING_SUBSCRIPTION = - 176, # This operation
                                                   #                                                           would interfer
                                                   #                                                           with an existing
                                                   #                                                           subscription 
-    RD_KAFKA_RESP_ERR__ASSIGN_PARTITIONS = - 175, # For use w rebalance_cb
-    RD_KAFKA_RESP_ERR__REVOKE_PARTITIONS = - 174, # For use w rebalance_cb
-    RD_KAFKA_RESP_ERR__CONFLICT = - 173, # Conflicting use 
-    RD_KAFKA_RESP_ERR__STATE = - 172, # Wrong state 
-    RD_KAFKA_RESP_ERR__UNKNOWN_PROTOCOL = - 171, # Unknown protocol 
-    RD_KAFKA_RESP_ERR__NOT_IMPLEMENTED = - 170, # Not implemented 
-    RD_KAFKA_RESP_ERR__AUTHENTICATION = - 169, # Authentication failure 
-    RD_KAFKA_RESP_ERR__END = - 100, # end internal error codes 
+    RD_KAFKA_RESP_ERR_ASSIGN_PARTITIONS = - 175, # For use w rebalance_cb
+    RD_KAFKA_RESP_ERR_REVOKE_PARTITIONS = - 174, # For use w rebalance_cb
+    RD_KAFKA_RESP_ERR_CONFLICT = - 173, # Conflicting use 
+    RD_KAFKA_RESP_ERR_STATE = - 172, # Wrong state 
+    RD_KAFKA_RESP_ERR_UNKNOWN_PROTOCOL = - 171, # Unknown protocol 
+    RD_KAFKA_RESP_ERR_NOT_IMPLEMENTED = - 170, # Not implemented 
+    RD_KAFKA_RESP_ERR_AUTHENTICATION = - 169, # Authentication failure 
+    RD_KAFKA_RESP_ERR_END = - 100, # end internal error codes 
                                 # Standard Kafka errors: 
     RD_KAFKA_RESP_ERR_UNKNOWN = - 1, RD_KAFKA_RESP_ERR_NO_ERROR = 0,
     RD_KAFKA_RESP_ERR_OFFSET_OUT_OF_RANGE = 1, RD_KAFKA_RESP_ERR_INVALID_MSG = 2,
@@ -226,10 +222,12 @@ proc rd_kafka_errno2err*(errnox: cint): rd_kafka_resp_err_t {.cdecl,
 # *****************************************************************
 
 type
+  int32_t = int32
+  
   rd_kafka_topic_partition_t* = object
     topic*: cstring
     partition*: int32_t
-    _private*: pointer         # INTERNAL USE ONLY, DO NOT TOUCH:
+    private*: pointer         # INTERNAL USE ONLY, DO NOT TOUCH:
                      #                                 : shptr_rd_kafka_toppar_t 
   
   rd_kafka_topic_partition_list_t* = object
@@ -282,6 +280,8 @@ proc rd_kafka_topic_partition_list_copy*(src: ptr rd_kafka_topic_partition_list_
 # 
 
 type
+  int64_t = int64
+  
   rd_kafka_message_t* = object
     err*: rd_kafka_resp_err_t  # Non-zero for error signaling. 
     rkt*: ptr rd_kafka_topic_t  # Topic 
@@ -302,7 +302,7 @@ type
                    #                                       otherwise only the last message in
                    #                                       each produced internal batch will
                    #                                       have this field set, otherwise 0. 
-    _private*: pointer # Consume:
+    private*: pointer # Consume:
                      #                                       rdkafka private pointer: DO NOT MODIFY
                      #                                     dr_msg_cb:
                      #                                       mgs_opaque from produce() call 
@@ -322,8 +322,9 @@ proc rd_kafka_message_destroy*(rkmessage: ptr rd_kafka_message_t) {.cdecl,
 
 proc rd_kafka_message_errstr*(rkmessage: ptr rd_kafka_message_t): cstring {.inline,
     cdecl.} =
-  if not rkmessage.err: return nil
-  if rkmessage.payload: return cast[cstring](rkmessage.payload)
+  if rkmessage.err == rd_kafka_resp_err_t.RD_KAFKA_RESP_ERR_NO_ERROR:
+    return nil
+  if rkmessage.payload != nil: return cast[cstring](rkmessage.payload)
   return rd_kafka_err2str(rkmessage.err)
 
 #******************************************************************
@@ -341,7 +342,9 @@ type
     RD_KAFKA_CONF_INVALID = - 1, # Invalid configuration value. 
     RD_KAFKA_CONF_OK = 0
 
-
+  mode_t = object
+  ssize_t = int64
+  
 #*
 #  Create configuration object.
 #  When providing your own configuration to the rd_kafka_*_new_*() calls
@@ -512,7 +515,7 @@ proc rd_kafka_conf_set_stats_cb*(conf: ptr rd_kafka_conf_t; stats_cb: proc (
 proc rd_kafka_conf_set_socket_cb*(conf: ptr rd_kafka_conf_t; socket_cb: proc (
     domain: cint; `type`: cint; protocol: cint; opaque: pointer): cint {.cdecl.}) {.cdecl,
     importc: "rd_kafka_conf_set_socket_cb", dynlib: librdkafka.}
-when not defined(_MSC_VER):
+when not defined(windows):
   #*
   #  Set open callback.
   #  The open callback is responsible for opening the file specified by
@@ -818,7 +821,7 @@ proc rd_kafka_topic_opaque*(rkt: ptr rd_kafka_topic_t): pointer {.cdecl,
 # 
 
 const
-  RD_KAFKA_PARTITION_UA* = ((int32_t) - 1)
+  RD_KAFKA_PARTITION_UA* = 2_147_483_647
 
 #******************************************************************
 # 								   *
@@ -1097,7 +1100,7 @@ proc rd_kafka_offset_store*(rkt: ptr rd_kafka_topic_t; partition: int32_t;
 # *****************************************************************
 
 type
-  rd_kafka_consumer_t* = rd_kafka_consumer_s
+  rd_kafka_consumer_t* = object
 
 # By config:
 #    ConsumerRebalanceCallback
@@ -1283,7 +1286,7 @@ type
   rd_kafka_metadata_topic_t* = object
     topic*: cstring            # Topic name 
     partition_cnt*: cint       # Number of partitions in 'partitions' 
-    partitions*: ptr rd_kafka_metadata_partition # Partitions 
+    partitions*: ptr rd_kafka_metadata_partition_t # Partitions 
     err*: rd_kafka_resp_err_t  # Topic error reported by broker 
   
 
@@ -1294,9 +1297,9 @@ type
 type
   rd_kafka_metadata_t* = object
     broker_cnt*: cint          # Number of brokers in 'brokers' 
-    brokers*: ptr rd_kafka_metadata_broker # Brokers 
+    brokers*: ptr rd_kafka_metadata_broker_t # Brokers 
     topic_cnt*: cint           # Number of topics in 'topics' 
-    topics*: ptr rd_kafka_metadata_topic # Topics 
+    topics*: ptr rd_kafka_metadata_topic_t # Topics 
     orig_broker_id*: int32_t   # Broker originating this metadata 
     orig_broker_name*: cstring # Name of originating broker 
   
@@ -1320,14 +1323,14 @@ type
 
 proc rd_kafka_metadata*(rk: ptr rd_kafka_t; all_topics: cint;
                        only_rkt: ptr rd_kafka_topic_t;
-                       metadatap: ptr ptr rd_kafka_metadata; timeout_ms: cint): rd_kafka_resp_err_t {.
+                       metadatap: ptr ptr rd_kafka_metadata_t; timeout_ms: cint): rd_kafka_resp_err_t {.
     cdecl, importc: "rd_kafka_metadata", dynlib: librdkafka.}
 #*
 #  Release metadata memory.
 # 
 #RD_EXPORT
 
-proc rd_kafka_metadata_destroy*(metadata: ptr rd_kafka_metadata) {.cdecl,
+proc rd_kafka_metadata_destroy*(metadata: ptr rd_kafka_metadata_t) {.cdecl,
     importc: "rd_kafka_metadata_destroy", dynlib: librdkafka.}
 #******************************************************************
 # 								   *
