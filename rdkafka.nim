@@ -61,56 +61,33 @@ else:
 const
   RD_KAFKA_VERSION* = 0x00090001
 
-#*
-#  Returns the librdkafka version as integer.
-# 
-#/*RD_EXPORT*/
+  RD_KAFKA_DEBUG_CONTEXTS* = "all,generic,broker,topic,metadata,producer,queue,msg,protocol,cgrp,security"
 
-proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
-                              dynlib: librdkafka.}
-#*
-#  Returns the librdkafka version as string.
-# 
-#RD_EXPORT
+  RD_KAFKA_PARTITION_UA* = 2_147_483_647
 
-proc rd_kafka_version_str*(): cstring {.cdecl, importc: "rd_kafka_version_str",
-                                     dynlib: librdkafka.}
-#*
-#  rd_kafka_t handle type
-# 
+  #  Simple Consumer API
+  RD_KAFKA_OFFSET_BEGINNING* = - 2
+  RD_KAFKA_OFFSET_END* = - 1
+  RD_KAFKA_OFFSET_STORED* = - 1000
+  RD_KAFKA_OFFSET_TAIL_BASE* = - 2000
+
+  RD_KAFKA_MSG_F_FREE* = 0x00000001
+  RD_KAFKA_MSG_F_COPY* = 0x00000002
 
 type
   rd_kafka_type_t* {.size: sizeof(cint).} = enum
     RD_KAFKA_PRODUCER, RD_KAFKA_CONSUMER
 
-
-#*
-#  Supported debug contexts (CSV "debug" configuration property)
-# 
-#RD_EXPORT
-
-proc rd_kafka_get_debug_contexts*(): cstring {.cdecl,
-    importc: "rd_kafka_get_debug_contexts", dynlib: librdkafka.}
-# Same as define (deprecated) 
-
-const
-  RD_KAFKA_DEBUG_CONTEXTS* = "all,generic,broker,topic,metadata,producer,queue,msg,protocol,cgrp,security"
-
 # Private types to provide ABI compatibility 
-
 type
   rd_kafka_t* = object
   rd_kafka_topic_t* = object
   rd_kafka_conf_t* = object
   rd_kafka_topic_conf_t* = object
   rd_kafka_queue_t* = object
-
-#*
-#  Kafka protocol error codes (version 0.8)
-# 
-
-type                          # Internal errors to rdkafka: 
+  
   rd_kafka_resp_err_t* {.size: sizeof(cint).} = enum
+    ## Internal errors to rdkafka: 
     RD_KAFKA_RESP_ERR_BEGIN = - 200, # begin internal error codes 
     RD_KAFKA_RESP_ERR_BAD_MSG = - 199, # Received message is incorrect 
     RD_KAFKA_RESP_ERR_BAD_COMPRESSION = - 198, # Bad/unknown compression 
@@ -192,6 +169,136 @@ type                          # Internal errors to rdkafka:
     RD_KAFKA_RESP_ERR_GROUP_AUTHORIZATION_FAILED = 30,
     RD_KAFKA_RESP_ERR_CLUSTER_AUTHORIZATION_FAILED = 31
 
+  int32_t = int32
+  
+  rd_kafka_topic_partition_t* = object
+    topic*: cstring
+    partition*: int32_t
+    private*: pointer         # INTERNAL USE ONLY, DO NOT TOUCH:
+                     #                                 : shptr_rd_kafka_toppar_t 
+  
+  rd_kafka_topic_partition_list_t* = object
+    cnt*: cint                 # Current number of elements 
+    size*: cint                # Allocated size 
+    elems*: ptr rd_kafka_topic_partition_t
+
+  int64_t = int64
+  
+  rd_kafka_message_t* = object
+    err*: rd_kafka_resp_err_t  # Non-zero for error signaling. 
+    rkt*: ptr rd_kafka_topic_t  # Topic 
+    partition*: int32_t        # Partition 
+    payload*: pointer          # err==0: Message payload
+                    #         err!=0: Error string 
+    len*: csize                # err==0: Message payload length
+              #         err!=0: Error string length 
+    key*: pointer              # err==0: Optional message key 
+    key_len*: csize            # err==0: Optional message key length 
+    offset*: int64_t # Consume:
+                   #                                       Message offset (or offset for error
+                   #           if err!=0 if applicable).
+                   #                                     dr_msg_cb:
+                   #                                       Message offset assigned by broker.
+                   #                                       If produce.offset.report is set then
+                   #                                       each message will have this field set,
+                   #                                       otherwise only the last message in
+                   #                                       each produced internal batch will
+                   #                                       have this field set, otherwise 0. 
+    private*: pointer # Consume:
+                     #                                       rdkafka private pointer: DO NOT MODIFY
+                     #                                     dr_msg_cb:
+                     #                                       mgs_opaque from produce() call 
+
+
+  rd_kafka_conf_res_t* {.size: sizeof(cint).} = enum
+    ##Configuration result type
+    RD_KAFKA_CONF_UNKNOWN = - 2, # Unknown configuration name. 
+    RD_KAFKA_CONF_INVALID = - 1, # Invalid configuration value. 
+    RD_KAFKA_CONF_OK = 0
+
+  mode_t = object
+  ssize_t = int64
+
+  rd_kafka_consumer_t* = object
+
+#  Metadata: Broker information
+# 
+
+type
+  rd_kafka_metadata_broker_t* = object
+    id*: int32_t               # Broker Id 
+    host*: cstring             # Broker hostname 
+    port*: cint                # Broker listening port 
+  
+
+#*
+#  Metadata: Partition information
+# 
+
+type
+  rd_kafka_metadata_partition_t* = object
+    id*: int32_t               # Partition Id 
+    err*: rd_kafka_resp_err_t  # Partition error reported by broker 
+    leader*: int32_t           # Leader broker 
+    replica_cnt*: cint         # Number of brokers in 'replicas' 
+    replicas*: ptr int32_t      # Replica brokers 
+    isr_cnt*: cint             # Number of ISR brokers in 'isrs' 
+    isrs*: ptr int32_t          # In-Sync-Replica brokers 
+  
+
+#*
+#  Metadata: Topic information
+# 
+
+type
+  rd_kafka_metadata_topic_t* = object
+    topic*: cstring            # Topic name 
+    partition_cnt*: cint       # Number of partitions in 'partitions' 
+    partitions*: ptr rd_kafka_metadata_partition_t # Partitions 
+    err*: rd_kafka_resp_err_t  # Topic error reported by broker 
+  
+
+#*
+#  Metadata container
+# 
+
+type
+  rd_kafka_metadata_t* = object
+    broker_cnt*: cint          # Number of brokers in 'brokers' 
+    brokers*: ptr rd_kafka_metadata_broker_t # Brokers 
+    topic_cnt*: cint           # Number of topics in 'topics' 
+    topics*: ptr rd_kafka_metadata_topic_t # Topics 
+    orig_broker_id*: int32_t   # Broker originating this metadata 
+    orig_broker_name*: cstring # Name of originating broker 
+
+  
+#*
+#  Returns the librdkafka version as integer.
+# 
+#/*RD_EXPORT*/
+
+proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
+                              dynlib: librdkafka.}
+#*
+#  Returns the librdkafka version as string.
+# 
+#RD_EXPORT
+
+proc rd_kafka_version_str*(): cstring {.cdecl, importc: "rd_kafka_version_str",
+                                     dynlib: librdkafka.}
+
+
+#*
+#  Supported debug contexts (CSV "debug" configuration property)
+# 
+#RD_EXPORT
+
+proc rd_kafka_get_debug_contexts*(): cstring {.cdecl,
+    importc: "rd_kafka_get_debug_contexts", dynlib: librdkafka.}
+# Same as define (deprecated) 
+
+
+
 
 #*
 #  Returns a human readable representation of a kafka error.
@@ -221,19 +328,6 @@ proc rd_kafka_errno2err*(errnox: cint): rd_kafka_resp_err_t {.cdecl,
 # 								   *
 # *****************************************************************
 
-type
-  int32_t = int32
-  
-  rd_kafka_topic_partition_t* = object
-    topic*: cstring
-    partition*: int32_t
-    private*: pointer         # INTERNAL USE ONLY, DO NOT TOUCH:
-                     #                                 : shptr_rd_kafka_toppar_t 
-  
-  rd_kafka_topic_partition_list_t* = object
-    cnt*: cint                 # Current number of elements 
-    size*: cint                # Allocated size 
-    elems*: ptr rd_kafka_topic_partition_t
 
 
 #RD_EXPORT
@@ -279,33 +373,6 @@ proc rd_kafka_topic_partition_list_copy*(src: ptr rd_kafka_topic_partition_list_
 #  `rd_kafka_message_destroy()`.
 # 
 
-type
-  int64_t = int64
-  
-  rd_kafka_message_t* = object
-    err*: rd_kafka_resp_err_t  # Non-zero for error signaling. 
-    rkt*: ptr rd_kafka_topic_t  # Topic 
-    partition*: int32_t        # Partition 
-    payload*: pointer          # err==0: Message payload
-                    #         err!=0: Error string 
-    len*: csize                # err==0: Message payload length
-              #         err!=0: Error string length 
-    key*: pointer              # err==0: Optional message key 
-    key_len*: csize            # err==0: Optional message key length 
-    offset*: int64_t # Consume:
-                   #                                       Message offset (or offset for error
-                   #           if err!=0 if applicable).
-                   #                                     dr_msg_cb:
-                   #                                       Message offset assigned by broker.
-                   #                                       If produce.offset.report is set then
-                   #                                       each message will have this field set,
-                   #                                       otherwise only the last message in
-                   #                                       each produced internal batch will
-                   #                                       have this field set, otherwise 0. 
-    private*: pointer # Consume:
-                     #                                       rdkafka private pointer: DO NOT MODIFY
-                     #                                     dr_msg_cb:
-                     #                                       mgs_opaque from produce() call 
   
 
 #*
@@ -333,17 +400,6 @@ proc rd_kafka_message_errstr*(rkmessage: ptr rd_kafka_message_t): cstring {.inli
 # 								   *
 # *****************************************************************
 #*
-#  Configuration result type
-# 
-
-type
-  rd_kafka_conf_res_t* {.size: sizeof(cint).} = enum
-    RD_KAFKA_CONF_UNKNOWN = - 2, # Unknown configuration name. 
-    RD_KAFKA_CONF_INVALID = - 1, # Invalid configuration value. 
-    RD_KAFKA_CONF_OK = 0
-
-  mode_t = object
-  ssize_t = int64
   
 #*
 #  Create configuration object.
@@ -820,8 +876,6 @@ proc rd_kafka_topic_opaque*(rkt: ptr rd_kafka_topic_t): pointer {.cdecl,
 #  that should be partitioned using the configured or default partitioner.
 # 
 
-const
-  RD_KAFKA_PARTITION_UA* = 2_147_483_647
 
 #******************************************************************
 # 								   *
@@ -855,11 +909,6 @@ proc rd_kafka_queue_destroy*(rkqu: ptr rd_kafka_queue_t) {.cdecl,
 # 								   *
 # *****************************************************************
 
-const
-  RD_KAFKA_OFFSET_BEGINNING* = - 2
-  RD_KAFKA_OFFSET_END* = - 1
-  RD_KAFKA_OFFSET_STORED* = - 1000
-  RD_KAFKA_OFFSET_TAIL_BASE* = - 2000
 
 # Start consuming `CNT` messages from topic's current `.._END` offset.
 #  That is, if current end offset is 12345 and `CNT` is 200, it will start
@@ -1099,8 +1148,6 @@ proc rd_kafka_offset_store*(rkt: ptr rd_kafka_topic_t; partition: int32_t;
 # 								   *
 # *****************************************************************
 
-type
-  rd_kafka_consumer_t* = object
 
 # By config:
 #    ConsumerRebalanceCallback
@@ -1210,9 +1257,6 @@ proc rd_kafka_subscription*(rk: ptr rd_kafka_t;
 #  NOTE: Use `rd_kafka_errno2err()` to convert `errno` to rdkafka error code.
 # 
 
-const
-  RD_KAFKA_MSG_F_FREE* = 0x00000001
-  RD_KAFKA_MSG_F_COPY* = 0x00000002
 
 #RD_EXPORT
 
@@ -1253,55 +1297,6 @@ proc rd_kafka_produce_batch*(rkt: ptr rd_kafka_topic_t; partition: int32_t;
 # 								   *
 # *****************************************************************
 #*
-#  Metadata: Broker information
-# 
-
-type
-  rd_kafka_metadata_broker_t* = object
-    id*: int32_t               # Broker Id 
-    host*: cstring             # Broker hostname 
-    port*: cint                # Broker listening port 
-  
-
-#*
-#  Metadata: Partition information
-# 
-
-type
-  rd_kafka_metadata_partition_t* = object
-    id*: int32_t               # Partition Id 
-    err*: rd_kafka_resp_err_t  # Partition error reported by broker 
-    leader*: int32_t           # Leader broker 
-    replica_cnt*: cint         # Number of brokers in 'replicas' 
-    replicas*: ptr int32_t      # Replica brokers 
-    isr_cnt*: cint             # Number of ISR brokers in 'isrs' 
-    isrs*: ptr int32_t          # In-Sync-Replica brokers 
-  
-
-#*
-#  Metadata: Topic information
-# 
-
-type
-  rd_kafka_metadata_topic_t* = object
-    topic*: cstring            # Topic name 
-    partition_cnt*: cint       # Number of partitions in 'partitions' 
-    partitions*: ptr rd_kafka_metadata_partition_t # Partitions 
-    err*: rd_kafka_resp_err_t  # Topic error reported by broker 
-  
-
-#*
-#  Metadata container
-# 
-
-type
-  rd_kafka_metadata_t* = object
-    broker_cnt*: cint          # Number of brokers in 'brokers' 
-    brokers*: ptr rd_kafka_metadata_broker_t # Brokers 
-    topic_cnt*: cint           # Number of topics in 'topics' 
-    topics*: ptr rd_kafka_metadata_topic_t # Topics 
-    orig_broker_id*: int32_t   # Broker originating this metadata 
-    orig_broker_name*: cstring # Name of originating broker 
   
 
 #*
