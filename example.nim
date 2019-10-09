@@ -1,7 +1,7 @@
 import rdkafka
 
 let ee = rd_kafka_version_str()
-echo("librdkafak version: " & $ee)
+echo("librdkafka version: " & $ee)
 
 # send some messages
 proc produce():string =
@@ -29,18 +29,20 @@ proc produce():string =
     echo("add result " & $p)
  
 proc message_to_str(m: PRDKMessage): cstring =
-  echo ("m len"& $m.len)
-  echo("m partition: " & $m.partition)
-  let err = rd_kafka_message_errstr(m)
-  if err != nil or err.len > 0:
-    echo("error: " & $err)
-    return cast[string](err)
-    
-  var res = cast[cstring](m.payload)
-  echo("payload: " & $res)
-  echo("offset: " & $m.offset)
-  #result = "dsd"
-  result = res
+  if isNil(m):
+    echo "m was nil"
+  else:
+    echo ("m len"& $m.len)
+    echo("m partition: " & $m.partition)
+    let err = rd_kafka_message_errstr(m)
+    if err != nil or err.len > 0:
+      echo("error: " & $err)
+      return cast[string](err)
+    var res = cast[cstring](m.payload)
+    echo("payload: " & $res)
+    echo("offset: " & $m.offset)
+    #result = "dsd"
+    result = res
   
 proc consume(): string =
   # kafka handle
@@ -65,8 +67,8 @@ proc consume(): string =
                                   part,
                                   RD_KAFKA_OFFSET_TAIL(5)
                                   #cast[int64_t](2)
-  ) 
-  echo("sart consuming value: " & $res)
+  )
+  echo("start consuming value: " & $res)
   var message = rd_kafka_consume(topic, part, 1000)
   var ms = message_to_str(message)
   echo("message: " & $ms)

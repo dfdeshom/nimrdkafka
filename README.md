@@ -5,3 +5,7 @@ have `librdkafka` installed and accessible in `LD_LIBRARY_PATH`.
 
 ## Example
 See the `example.nim` file
+
+## librdkafka compatibility
+Tested compatible with:
+`librdkafka 1.2.1-RC-1`
