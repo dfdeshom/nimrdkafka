@@ -62,7 +62,7 @@ const
   ## Supported debug contexts (CSV "debug" configuration property)
   RD_KAFKA_DEBUG_CONTEXTS* = "all,generic,broker,topic,metadata,producer,queue,msg,protocol"
 
-  RD_KAFKA_PARTITION_UA* =  2_147_483_647  ##\
+  RD_KAFKA_PARTITION_UA*:int32 = -1
   ##Unassigned partition.
   ##The unassigned partition is used by the producer API for messages
   ##that should be partitioned using the configured or default partitioner.
@@ -579,7 +579,7 @@ proc rd_kafka_queue_destroy*(rkqu: PRDKQueue) {.cdecl,
 #  Consumer API                                                    *
 # 								   *
 # *****************************************************************
-template RD_KAFKA_OFFSET_TAIL*(CNT: expr): expr =
+template RD_KAFKA_OFFSET_TAIL*(CNT: untyped): untyped =
   ##Start consuming `CNT` messages from topic's current `.._END` offset.
   ##That is, if current end offset is 12345 and `CNT` is 200, it will start
   ##consuming from offset 12345-200 = 12145. 

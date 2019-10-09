@@ -1,10 +1,10 @@
 [Package]
 name          = "nimrdkafka"
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "Didier Deshommes"
 description   = "Low-level Nim wrapper for librdkafka"
 license       = "MIT"
 
 
 [Deps]
-Requires: "nim >= 0.10.0"
+Requires: "nim >= 1.0.0"
