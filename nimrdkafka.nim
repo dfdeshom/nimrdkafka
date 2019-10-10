@@ -58,7 +58,7 @@ else:
     librdkafka* = "librdkafka.so.1"
 
 const
-  RD_KAFKA_VERSION* = 0x00080600
+  RD_KAFKA_VERSION* = 0x010201ff
   ## Supported debug contexts (CSV "debug" configuration property)
   RD_KAFKA_DEBUG_CONTEXTS* = "all,generic,broker,topic,metadata,producer,queue,msg,protocol"
 
@@ -78,7 +78,7 @@ const
   RD_KAFKA_MSG_F_COPY* = 0x00000002
 
 type
-  uint32_t = int32
+  uint32_t = uint32
   int32_t = int32
   int64_t = int64
   ssize_t = int64
