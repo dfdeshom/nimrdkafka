@@ -1,4 +1,4 @@
-import rdkafka
+import nimrdkafka
 
 let ee = rd_kafka_version_str()
 echo("librdkafka version: " & $ee)
