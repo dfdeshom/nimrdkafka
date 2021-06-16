@@ -230,6 +230,9 @@ proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
 proc rd_kafka_version_str*(): cstring {.cdecl, importc: "rd_kafka_version_str",
                                      dynlib: librdkafka.} ## Returns the librdkafka version as string.
 
+proc rd_kafka_last_error*(): RDKResponseError {.cdecl, importc: "rd_kafka_last_error",
+                                     dynlib: librdkafka.}
+
 proc rd_kafka_err2str*(err: RDKResponseError): cstring {.cdecl,
     importc: "rd_kafka_err2str", dynlib: librdkafka.} ## \
     ## Returns a human readable representation of a kafka error.
