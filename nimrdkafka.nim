@@ -940,3 +940,6 @@ proc rd_kafka_wait_destroyed*(timeout_ms: cint): cint {.cdecl,
     ##Since `rd_kafka_destroy()` is an asynch operation the 
     ##`rd_kafka_wait_destroyed()` function can be used for applications where
     ##a clean shutdown is required.
+
+proc rd_kafka_flush*(rk: PRDK, timeout_ms: cint): cint {.cdecl,
+    importc: "rd_kafka_flush", dynlib: librdkafka.}

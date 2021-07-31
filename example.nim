@@ -18,7 +18,7 @@ proc produce():string =
   let topic_name:cstring = "test_topic"
   let topic = rd_kafka_topic_new(kp,topic_name,topic_conf)
  
-  let part:int32 = 1
+  let part:int32 = 0
   for i in 1..10:
     var message:cstring = "test mesage! " & $i 
     
@@ -27,6 +27,8 @@ proc produce():string =
                              message.len+1,
                              nil,0,nil)
     echo("add result " & $p)
+  
+  discard rd_kafka_flush(kp, 10*1000)
  
 proc message_to_str(m: PRDKMessage): cstring =
   if isNil(m):
@@ -62,7 +64,7 @@ proc consume(): string =
   let topic = rd_kafka_topic_new(kc,topic_name,topic_conf)
  
   # start consuming
-  let part:int32 = 1
+  let part:int32 = 0
   var res= rd_kafka_consume_start(topic,
                                   part,
                                   RD_KAFKA_OFFSET_TAIL(5)
