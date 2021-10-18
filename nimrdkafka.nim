@@ -952,3 +952,15 @@ proc rd_kafka_commit*(rk: PRDK, offset: int64_t, async: cint): cint {.cdecl,
 proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
     importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
     ## Close down the KafkaConsumer.
+
+proc rd_kafka_subscribe*(rk: PRDK, rkt: PRDKTopic): RDKResponseError {.cdecl,
+    importc: "rd_kafka_subscribe", dynlib: librdkafka.} ##\
+    ##Wildcard (regex) topics are supported:
+    ##any topic name in the \p topics list that is prefixed with \c \"^\" will
+    ##be regex-matched to the full list of topics in the cluster and matching
+    ##topics will be added to the subscription list.
+    ##
+    ##The full topic list is retrieved every \c topic.metadata.refresh.interval.ms
+    ##to pick up new or delete topics that match the subscription.
+    ##If there is any change to the matched topics the consumer will
+    ##immediately rejoin the group with the updated set of subscribed topics.
