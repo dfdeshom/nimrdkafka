@@ -964,3 +964,6 @@ proc rd_kafka_subscribe*(rk: PRDK, rkt: ptr PRDKTopic): RDKResponseError {.cdecl
     ##to pick up new or delete topics that match the subscription.
     ##If there is any change to the matched topics the consumer will
     ##immediately rejoin the group with the updated set of subscribed topics.
+
+proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
+    importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
