@@ -953,7 +953,7 @@ proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
     importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
     ## Close down the KafkaConsumer.
 
-proc rd_kafka_subscribe*(rk: PRDK, rkt: PRDKTopic): RDKResponseError {.cdecl,
+proc rd_kafka_subscribe*(rk: PRDK, rkt: ptr PRDKTopic): RDKResponseError {.cdecl,
     importc: "rd_kafka_subscribe", dynlib: librdkafka.} ##\
     ##Wildcard (regex) topics are supported:
     ##any topic name in the \p topics list that is prefixed with \c \"^\" will
