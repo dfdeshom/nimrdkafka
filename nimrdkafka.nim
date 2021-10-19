@@ -985,5 +985,6 @@ proc rd_kafka_topic_partition_list_new*(size: csize): PRDKTopicPartition {.cdecl
 proc rd_kafka_topic_partition_list_add*(
     topicPartitionList: PRDKTopicPartition,
     topic: cstring,
-    partition: cint) {.cdecl, importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
+    partition: cint): PRDKTopicPartition {.cdecl,
+    importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
     ##Add topic+partition to list
