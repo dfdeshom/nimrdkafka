@@ -222,7 +222,17 @@ type
     private*: pointer           ## rdkafka private pointer: DO NOT MODIFY 
   
   PRDKMessage* = ptr RDKMessage
-  
+
+  PRDKTopicPartition* = object
+    tpic*: cstring                         ## Topic name
+    partition*: int32                      ## Partition
+    offset*: int64                         ## Offset
+    metadata*: pointer                     ## Metadata
+    metadata_size*: csize                  ## Metadata size
+    opaque*: pointer                       ## Opaque value for application use
+    rd_kafka_resp_err_t*: RDKResponseError ## Error code, depending on use
+    private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
+
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
       ##Returns the librdkafka version as integer.
@@ -967,3 +977,7 @@ proc rd_kafka_subscribe*(rk: PRDK, rkt: ptr PRDKTopic): RDKResponseError {.cdecl
 
 proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
     importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
+
+proc rd_kafka_topic_partition_list_new*(size: csize): PRDKTopicPartition {.cdecl
+    importc: "rd_kafka_topic_partition_list_new", dynlib: librdkafka.}
+    ##Create a new list/vector Topic+Partition container.
