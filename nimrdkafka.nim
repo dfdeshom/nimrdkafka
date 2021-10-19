@@ -983,13 +983,13 @@ proc rd_kafka_subscribe*(rk: PRDK, topic: PRDKTopicPartitionList): RDKResponseEr
 proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
     importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
 
-proc rd_kafka_topic_partition_list_new*(size: csize): PRDKTopicPartition {.cdecl
+proc rd_kafka_topic_partition_list_new*(size: csize): PRDKTopicPartitionList {.cdecl
     importc: "rd_kafka_topic_partition_list_new", dynlib: librdkafka.}
     ##Create a new list/vector Topic+Partition container.
 
 proc rd_kafka_topic_partition_list_add*(
-    topicPartitionList: PRDKTopicPartition,
+    topicPartitionList: PRDKTopicPartitionList,
     topic: cstring,
-    partition: cint): PRDKTopicPartition {.cdecl,
+    partition: cint): PRDKTopicPartitionList {.cdecl,
     importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
     ##Add topic+partition to list
