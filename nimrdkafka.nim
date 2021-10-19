@@ -234,7 +234,7 @@ type
     private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
 
   PRDKTopicPartitionList* = object
-    cnt*: int32
+    cnt*: cint
     size*: csize
     elems*: PRDKTopicPartition
 
