@@ -233,6 +233,11 @@ type
     rd_kafka_resp_err_t*: RDKResponseError ## Error code, depending on use
     private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
 
+  PRDKTopicPartitionList* = object
+    cnt*: int32
+    size*: csize
+    elem*: PRDKTopicPartition
+
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
       ##Returns the librdkafka version as integer.
@@ -963,7 +968,7 @@ proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
     importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
     ## Close down the KafkaConsumer.
 
-proc rd_kafka_subscribe*(rk: PRDK, rkt: ptr PRDKTopic): RDKResponseError {.cdecl,
+proc rd_kafka_subscribe*(rk: PRDK, topic: PRDKTopicPartitionList): RDKResponseError {.cdecl,
     importc: "rd_kafka_subscribe", dynlib: librdkafka.} ##\
     ##Wildcard (regex) topics are supported:
     ##any topic name in the \p topics list that is prefixed with \c \"^\" will
