@@ -236,7 +236,7 @@ type
   PRDKTopicPartitionList* = object
     cnt*: int32
     size*: csize
-    elem*: PRDKTopicPartition
+    elems*: PRDKTopicPartition
 
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
@@ -990,6 +990,6 @@ proc rd_kafka_topic_partition_list_new*(size: csize): PRDKTopicPartitionList {.c
 proc rd_kafka_topic_partition_list_add*(
     topicPartitionList: PRDKTopicPartitionList,
     topic: cstring,
-    partition: cint): PRDKTopicPartitionList {.cdecl,
+    partition: cint): PRDKTopicPartition {.cdecl,
     importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
     ##Add topic+partition to list
