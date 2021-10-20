@@ -223,7 +223,7 @@ type
   
   PRDKMessage* = ptr RDKMessage
 
-  PRDKTopicPartition* = object
+  RDKTopicPartition* = object
     topic*: cstring                         ## Topic name
     partition*: int32                      ## Partition
     offset*: int64                         ## Offset
@@ -233,10 +233,14 @@ type
     rd_kafka_resp_err_t*: RDKResponseError ## Error code, depending on use
     private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
 
-  PRDKTopicPartitionList* = object
+  PRDKTopicPartition* = ptr RDKTopicPartition
+
+  RDKTopicPartitionList* = object
     cnt*: cint
     size*: cint
     elems*: PRDKTopicPartition
+
+  PRDKTopicPartitionList* = ptr RDKTopicPartitionList
 
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
