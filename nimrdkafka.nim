@@ -222,7 +222,26 @@ type
     private*: pointer           ## rdkafka private pointer: DO NOT MODIFY 
   
   PRDKMessage* = ptr RDKMessage
-  
+
+  RDKTopicPartition* = object
+    topic*: cstring                         ## Topic name
+    partition*: int32                      ## Partition
+    offset*: int64                         ## Offset
+    metadata*: pointer                     ## Metadata
+    metadata_size*: csize                  ## Metadata size
+    opaque*: pointer                       ## Opaque value for application use
+    rd_kafka_resp_err_t*: RDKResponseError ## Error code, depending on use
+    private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
+
+  PRDKTopicPartition* = ptr RDKTopicPartition
+
+  RDKTopicPartitionList* = object
+    cnt*: cint
+    size*: cint
+    elems*: PRDKTopicPartition
+
+  PRDKTopicPartitionList* = ptr RDKTopicPartitionList
+
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
       ##Returns the librdkafka version as integer.
@@ -943,3 +962,38 @@ proc rd_kafka_wait_destroyed*(timeout_ms: cint): cint {.cdecl,
 
 proc rd_kafka_flush*(rk: PRDK, timeout_ms: cint): cint {.cdecl,
     importc: "rd_kafka_flush", dynlib: librdkafka.}
+
+proc rd_kafka_commit*(rk: PRDK, offset: int64_t, async: cint): cint {.cdecl,
+    importc: "rd_kafka_commit", dynlib: librdkafka.} ##\
+    ##Commit message's offset on broker for the message's partition.
+    ##The committed offset is the message's offset + 1.
+
+proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
+    importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
+    ## Close down the KafkaConsumer.
+
+proc rd_kafka_subscribe*(rk: PRDK, topic: PRDKTopicPartitionList): RDKResponseError {.cdecl,
+    importc: "rd_kafka_subscribe", dynlib: librdkafka.} ##\
+    ##Wildcard (regex) topics are supported:
+    ##any topic name in the \p topics list that is prefixed with \c \"^\" will
+    ##be regex-matched to the full list of topics in the cluster and matching
+    ##topics will be added to the subscription list.
+    ##
+    ##The full topic list is retrieved every \c topic.metadata.refresh.interval.ms
+    ##to pick up new or delete topics that match the subscription.
+    ##If there is any change to the matched topics the consumer will
+    ##immediately rejoin the group with the updated set of subscribed topics.
+
+proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
+    importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
+
+proc rd_kafka_topic_partition_list_new*(size: cint): PRDKTopicPartitionList {.cdecl
+    importc: "rd_kafka_topic_partition_list_new", dynlib: librdkafka.}
+    ##Create a new list/vector Topic+Partition container.
+
+proc rd_kafka_topic_partition_list_add*(
+    topicPartitionList: PRDKTopicPartitionList,
+    topic: cstring,
+    partition: cint): PRDKTopicPartition {.cdecl,
+    importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
+    ##Add topic+partition to list
