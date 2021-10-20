@@ -235,7 +235,7 @@ type
 
   PRDKTopicPartitionList* = object
     cnt*: cint
-    size*: csize
+    size*: cint
     elems*: PRDKTopicPartition
 
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
