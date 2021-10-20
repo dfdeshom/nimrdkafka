@@ -224,7 +224,7 @@ type
   PRDKMessage* = ptr RDKMessage
 
   PRDKTopicPartition* = object
-    tpic*: cstring                         ## Topic name
+    topic*: cstring                         ## Topic name
     partition*: int32                      ## Partition
     offset*: int64                         ## Offset
     metadata*: pointer                     ## Metadata
