@@ -960,10 +960,10 @@ proc rd_kafka_wait_destroyed*(timeout_ms: cint): cint {.cdecl,
     ##`rd_kafka_wait_destroyed()` function can be used for applications where
     ##a clean shutdown is required.
 
-proc rd_kafka_flush*(rk: PRDK, timeout_ms: cint): cint {.cdecl,
+proc rd_kafka_flush*(rk: PRDK, timeout_ms: cint): RDKResponseError {.cdecl,
     importc: "rd_kafka_flush", dynlib: librdkafka.}
 
-proc rd_kafka_commit*(rk: PRDK, offset: int64_t, async: cint): cint {.cdecl,
+proc rd_kafka_commit*(rk: PRDK, offset: int64_t, async: cint): RDKResponseError {.cdecl,
     importc: "rd_kafka_commit", dynlib: librdkafka.} ##\
     ##Commit message's offset on broker for the message's partition.
     ##The committed offset is the message's offset + 1.
