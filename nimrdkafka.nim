@@ -222,7 +222,26 @@ type
     private*: pointer           ## rdkafka private pointer: DO NOT MODIFY 
   
   PRDKMessage* = ptr RDKMessage
-  
+
+  RDKTopicPartition* = object
+    topic*: cstring                         ## Topic name
+    partition*: int32                      ## Partition
+    offset*: int64                         ## Offset
+    metadata*: pointer                     ## Metadata
+    metadata_size*: csize                  ## Metadata size
+    opaque*: pointer                       ## Opaque value for application use
+    rd_kafka_resp_err_t*: RDKResponseError ## Error code, depending on use
+    private: pointer                       ## INTERNAL USE ONLY, INITIALIZE TO ZERO, DO NOT TOUCH
+
+  PRDKTopicPartition* = ptr RDKTopicPartition
+
+  RDKTopicPartitionList* = object
+    cnt*: cint
+    size*: cint
+    elems*: PRDKTopicPartition
+
+  PRDKTopicPartitionList* = ptr RDKTopicPartitionList
+
 proc rd_kafka_version*(): cint {.cdecl, importc: "rd_kafka_version",
                               dynlib: librdkafka.} ##\
       ##Returns the librdkafka version as integer.
@@ -251,10 +270,10 @@ proc rd_kafka_errno2err*(errnox: cint): RDKResponseError {.cdecl,
     ##  
 
 #******************************************************************
-# 								   *
-#  Kafka messages                                                  *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Kafka messages                                                 ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_message_destroy*(rkmessage: PRDKMessage) {.cdecl,
     importc: "rd_kafka_message_destroy", dynlib: librdkafka.} ##\
     ## Frees resources for 'rkmessage' and hands ownership back to rdkafka.
@@ -269,10 +288,10 @@ proc rd_kafka_message_errstr*(rkmessage: PRDKMessage): cstring {.inline,
   return rd_kafka_err2str(rkmessage.err)
 
 #******************************************************************
-# 								   *
-#  Main configuration property interface			   *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Main configuration property interface			  ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_conf_new*(): PRDKConf {.cdecl, importc: "rd_kafka_conf_new",
     dynlib: librdkafka.} ## \
     ##Create configuration object.
@@ -420,10 +439,10 @@ proc rd_kafka_conf_properties_show*(fp: ptr FILE) {.cdecl,
     ##their default values as well as a description.
 
 #******************************************************************
-# 								   *
-#  Topic configuration property interface			   *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Topic configuration property interface			  ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_topic_conf_new*(): PRDKTopicConf {.cdecl,
     importc: "rd_kafka_topic_conf_new", dynlib: librdkafka.} ##\
     ##Create topic configuration object
@@ -478,10 +497,10 @@ proc rd_kafka_topic_partition_available*(rkt: PRDKTopic;
     ##NOTE: This function must only be called from inside a partitioner function.
  
 #******************************************************************
-# 								   *
-#  Partitioners provided by rdkafka                                *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Partitioners provided by rdkafka                               ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_msg_partitioner_random*(rkt: PRDKTopic;
                                       key: pointer;
                                       keylen: csize;
@@ -505,10 +524,10 @@ proc rd_kafka_msg_partitioner_consistent*(rkt: PRDKTopic;
     ##Returns a 'random' partition between 0 and partition_cnt - 1 based on the crc value of the key
 
 #******************************************************************
-# 								   *
-#  Kafka object handle                                             *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Kafka object handle                                            ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_new*(`type`: RDKType;
                    conf: PRDKConf;
                    errstr: cstring;
@@ -558,10 +577,10 @@ proc rd_kafka_topic_opaque*(rkt: PRDKTopic): pointer {.cdecl,
     ##Get the rkt_opaque pointer that was set in the topic configuration.
 
 #******************************************************************
-# 								   *
-#  Queue API                                                       *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Queue API                                                      ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_queue_new*(rk: RDK): PRDKQueue {.cdecl,
     importc: "rd_kafka_queue_new", dynlib: librdkafka.} ##\
     ##Create a new message queue.
@@ -578,10 +597,10 @@ proc rd_kafka_queue_destroy*(rkqu: PRDKQueue) {.cdecl,
     ##Destroy a queue, purging all of its enqueued messages.
 
 #******************************************************************
-# 								   *
-#  Consumer API                                                    *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Consumer API                                                   ##
+# 								  ##
+###****************************************************************
 template RD_KAFKA_OFFSET_TAIL*(CNT: untyped): untyped =
   ##Start consuming `CNT` messages from topic's current `.._END` offset.
   ##That is, if current end offset is 12345 and `CNT` is 200, it will start
@@ -602,7 +621,7 @@ proc rd_kafka_consume_start*(rkt: PRDKTopic;
     ##from the broker until the threshold is reached.
     ##The application shall use one of the `rd_kafka_consume*()` functions
     ##to consume messages from the local queue, each kafka message being
-    ##represented as a `rd_kafka_message_t *` object.
+    ##represented as a `rd_kafka_message_t##` object.
     ##`rd_kafka_consume_start()` must not be called multiple times for the same
     ##topic and partition without stopping consumption first with
     ##`rd_kafka_consume_stop()`.
@@ -731,12 +750,61 @@ proc rd_kafka_offset_store*(rkt: PRDKTopic;
     ##to `auto.commit.interval.ms`.
     ##NOTE: `auto.commit.enable` must be set to "false" when using this API.
     ##Returns RD_KAFKA_RESP_ERR_NO_ERROR on success or an error code on error.
-  
+
+proc rd_kafka_assign*(rk: PRDK, partitions: PRDKTopicPartitionList): RDKResponseError {.cdecl
+    importc: "rd_kafka_assign", dynlib: librdkafka.}
+    ##
+    ##@brief Atomic assignment of partitions to consume.
+    ##
+    ##The new \p partitions will replace the existing assignment.
+    ##
+    ##A zero-length \p partitions will treat the partitions as a valid,
+    ##albeit empty assignment, and maintain internal state, while a \c NULL
+    ##value for \p partitions will reset and clear the internal state.
+    ##
+    ##When used from a rebalance callback, the application should pass the
+    ##partition list passed to the callback (or a copy of it) even if the list
+    ##is empty (i.e. should not pass NULL in this case) so as to maintain
+    ##internal join state. This is not strictly required - the application
+    ##may adjust the assignment provided by the group. However, this is rarely
+    ##useful in practice.
+    ##
+    ##@returns An error code indicating if the new assignment was applied or not.
+    ##         RD_KAFKA_RESP_ERR__FATAL is returned if the consumer has raised
+    ##         a fatal error.
+    ## 
+
+proc rd_kafka_seek*(rkt: PRDKTopic, partition: int32_t, offset: int64_t, timeout_ms: cint): RDKResponseError {.cdecl
+    importc: "rd_kafka_seek", dynlib: librdkafka.}
+    ##
+    ## @brief Seek consumer for topic+partition to \p offset which is either an
+    ##        absolute or logical offset.
+    ##
+    ## If \p timeout_ms is not 0 the call will wait this long for the
+    ## seek to be performed. If the timeout is reached the internal state
+    ## will be unknown and this function returns `RD_KAFKA_RESP_ERR__TIMED_OUT`.
+    ## If \p timeout_ms is 0 it will initiate the seek but return
+    ## immediately without any error reporting (e.g., async).
+    ##
+    ## This call will purge all pre-fetched messages for the given partition, which
+    ## may be up to \c queued.max.message.kbytes in size. Repeated use of seek
+    ## may thus lead to increased network usage as messages are re-fetched from
+    ## the broker.
+    ##
+    ## @remark Seek must only be performed for already assigned/consumed partitions,
+    ##         use rd_kafka_assign() (et.al) to set the initial starting offset
+    ##         for a new assignmenmt.
+    ##
+    ## @returns `RD_KAFKA_RESP_ERR__NO_ERROR` on success else an error code.
+    ##
+    ## @deprecated Use rd_kafka_seek_partitions().
+    ## 
+
 #******************************************************************
-# 								   *
-#  Producer API                                                    *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Producer API                                                   ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_produce*(rkt: PRDKTopic;
                        partitition: int32_t;
                        msgflags: cint;
@@ -823,10 +891,10 @@ proc rd_kafka_produce_batch*(rkt: PRDKTopic;
     ##Returns the number of messages succesfully enqueued for producing.
 
 #******************************************************************
-# 								   *
-#  Metadata API                                                    *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Metadata API                                                   ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_metadata*(rk: PRDK;
                         all_topics: cint;
                         only_rkt: PRDKTopic;
@@ -851,10 +919,10 @@ proc rd_kafka_metadata_destroy*(metadata: PRDKMetadata) {.cdecl,
     importc: "rd_kafka_metadata_destroy", dynlib: librdkafka.} ##Release metadata memory.
 
 #******************************************************************
-# 								   *
-#  Misc API                                                        *
-# 								   *
-# *****************************************************************
+# 								  ##
+#  Misc API                                                       ##
+# 								  ##
+###****************************************************************
 proc rd_kafka_poll*(rk: PRDK; timeout_ms: cint): cint {.cdecl,
     importc: "rd_kafka_poll", dynlib: librdkafka.} ##\
     ##Polls the provided kafka handle for events.
@@ -940,3 +1008,49 @@ proc rd_kafka_wait_destroyed*(timeout_ms: cint): cint {.cdecl,
     ##Since `rd_kafka_destroy()` is an asynch operation the 
     ##`rd_kafka_wait_destroyed()` function can be used for applications where
     ##a clean shutdown is required.
+
+proc rd_kafka_flush*(rk: PRDK, timeout_ms: cint): RDKResponseError {.cdecl,
+    importc: "rd_kafka_flush", dynlib: librdkafka.}
+
+proc rd_kafka_commit*(rk: PRDK, offset: PRDKTopicPartitionList, async: cint): RDKResponseError {.cdecl,
+    importc: "rd_kafka_commit", dynlib: librdkafka.} ##\
+    ##Commit message's offset on broker for the message's partition.
+    ##The committed offset is the message's offset + 1.
+
+proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
+    importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
+    ## Close down the KafkaConsumer.
+
+proc rd_kafka_subscribe*(rk: PRDK, topic: PRDKTopicPartitionList): RDKResponseError {.cdecl,
+    importc: "rd_kafka_subscribe", dynlib: librdkafka.} ##\
+    ##Wildcard (regex) topics are supported:
+    ##any topic name in the \p topics list that is prefixed with \c \"^\" will
+    ##be regex-matched to the full list of topics in the cluster and matching
+    ##topics will be added to the subscription list.
+    ##
+    ##The full topic list is retrieved every \c topic.metadata.refresh.interval.ms
+    ##to pick up new or delete topics that match the subscription.
+    ##If there is any change to the matched topics the consumer will
+    ##immediately rejoin the group with the updated set of subscribed topics.
+
+proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
+    importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
+
+proc rd_kafka_topic_partition_list_new*(size: cint): PRDKTopicPartitionList {.cdecl
+    importc: "rd_kafka_topic_partition_list_new", dynlib: librdkafka.}
+    ##Create a new list/vector Topic+Partition container.
+
+proc rd_kafka_topic_partition_list_add*(
+    topicPartitionList: PRDKTopicPartitionList,
+    topic: cstring,
+    partition: cint): PRDKTopicPartition {.cdecl,
+    importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
+    ##Add topic+partition to list
+
+proc rd_kafka_consumer_close*(rk: PRDK): RDKResponseError {.cdecl
+    importc: "rd_kafka_consumer_close", dynlib: librdkafka.}
+    #Close down the KafkaConsumer.
+
+proc rd_kafka_position*(rk: PRDK, partitions: PRDKTopicPartitionList): RDKResponseError {.cdecl
+    importc: "rd_kafka_position", dynlib: librdkafka.}
+    ##Retrieve current positions (offsets) for topics+partitions.
