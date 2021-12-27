@@ -1001,3 +1001,7 @@ proc rd_kafka_topic_partition_list_add*(
 proc rd_kafka_consumer_close*(rk: PRDK): RDKResponseError {.cdecl
     importc: "rd_kafka_consumer_close", dynlib: librdkafka.}
     #Close down the KafkaConsumer.
+
+proc rd_kafka_position*(rk: PRDK, partitions: PRDKTopicPartitionList): RDKResponseError {.cdecl
+    importc: "rd_kafka_position", dynlib: librdkafka.}
+    ##Retrieve current positions (offsets) for topics+partitions.
