@@ -45,8 +45,8 @@
 #  I.e.: 0x00080100 = 0.8.1
 # 
 {.deadCodeElim: on.}
-{.passL: "-lz -lpthread -lrt" .}
-
+{.passL: "-lz -lpthread" .}
+ 
 when defined(windows): 
   const 
     librdkafka* = "librdkafka.dll"
