@@ -58,7 +58,7 @@ else:
     librdkafka* = "librdkafka.so.1"
 
 const
-  RD_KAFKA_VERSION* = 0x010400ff
+  RD_KAFKA_VERSION* = 0x010602ff
   ## Supported debug contexts (CSV "debug" configuration property)
   RD_KAFKA_DEBUG_CONTEXTS* = "all,generic,broker,topic,metadata,producer,queue,msg,protocol"
 
@@ -546,7 +546,7 @@ proc rd_kafka_new*(`type`: RDKType;
     ##Returns the Kafka handle on success or NULL on error.
     ##To destroy the Kafka handle, use rd_kafka_destroy().
 
-proc rd_kafka_destroy*(rk: RDK) {.cdecl, importc: "rd_kafka_destroy",
+proc rd_kafka_destroy*(rk: PRDK) {.cdecl, importc: "rd_kafka_destroy",
     dynlib: librdkafka.} ##Destroy Kafka handle.
 
 proc rd_kafka_name*(rk: RDK): cstring {.cdecl, importc: "rd_kafka_name",

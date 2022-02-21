@@ -9,11 +9,11 @@ See the `example.nim` file
 ## librdkafka compatibility
 ```
 library: librdkafka
-version: 1.4.0
-commit: e4a8c0f62742789bd4d62accd1497c82c08c4259
+version: 1.6.2
+commit: 4483be32ba833e0a2a9129e2510bd63a40655b43
 ```
 
-Please install `librdkafka 1.4.0` from source before installing this nim package:
+Please install `librdkafka 1.6.2` from source before installing this nim package:
 
 https://github.com/edenhill/librdkafka
 
@@ -22,7 +22,7 @@ https://github.com/edenhill/librdkafka
 ```
 git clone https://github.com/edenhill/librdkafka
 cd librdkafka
-git checkout v1.4.0
+git checkout v1.6.2
 ```
 
 Read `README.md` file in `librdkafka` project for building and installing.
