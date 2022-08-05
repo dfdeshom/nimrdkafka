@@ -1047,6 +1047,12 @@ proc rd_kafka_topic_partition_list_add*(
     importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
     ##Add topic+partition to list
 
+proc rd_kafka_topic_partition_list_destroy*(
+    topicPartitionList: PRDKTopicPartitionList
+) {.cdecl,
+ importc: "rd_kafka_topic_partition_list_destroy", dynlib: librdkafka.} 
+ ##Free all resources used by the list and the list itself.
+
 proc rd_kafka_consumer_close*(rk: PRDK): RDKResponseError {.cdecl
     importc: "rd_kafka_consumer_close", dynlib: librdkafka.}
     #Close down the KafkaConsumer.
