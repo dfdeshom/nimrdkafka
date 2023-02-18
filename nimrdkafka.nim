@@ -595,6 +595,18 @@ proc rd_kafka_queue_new*(rk: RDK): PRDKQueue {.cdecl,
 proc rd_kafka_queue_destroy*(rkqu: PRDKQueue) {.cdecl,
     importc: "rd_kafka_queue_destroy", dynlib: librdkafka.} ##\
     ##Destroy a queue, purging all of its enqueued messages.
+  
+proc rd_kafka_offsets_for_times*(rk: PRDK, offsets: PRDKTopicPartitionList, timeout_ms: cint): RDKResponseError {.cdecl,
+    importc: "rd_kafka_offsets_for_times", dynlib: librdkafka.}
+    ##Look up the offsets for the given partitions by timestamp.
+
+proc rd_kafka_topic_partition_list_set_offset*(
+    rktprlist: PRDKTopicPartitionList, 
+    topic: cstring,
+    partition: int32_t,
+    offset: int64_t): RDKResponseError {.cdecl,
+    importc: "rd_kafka_topic_partition_list_set_offset", dynlib: librdkafka.}
+    ##Set offset to offset for topic and partition.
 
 #******************************************************************
 # 								  ##
