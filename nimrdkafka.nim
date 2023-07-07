@@ -1029,6 +1029,11 @@ proc rd_kafka_commit*(rk: PRDK, offset: PRDKTopicPartitionList, async: cint): RD
     ##Commit message's offset on broker for the message's partition.
     ##The committed offset is the message's offset + 1.
 
+proc rd_kafka_commit_message*(rk: PRDK, message: PRDKMessage, async: cint): RDKResponseError {.cdecl,
+    importc: "rd_kafka_commit_message", dynlib: librdkafka.} ## \
+    ##Commit message's offset on broker for the message's partition. 
+    ##The committed offset is the message's offset + 1.
+
 proc rd_kafka_consumer_poll*(rk: PRDK, timeout_ms: cint): PRDKMessage {.cdecl,
     importc: "rd_kafka_consumer_poll", dynlib: librdkafka.} ##\
     ## Close down the KafkaConsumer.
