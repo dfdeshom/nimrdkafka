@@ -600,14 +600,6 @@ proc rd_kafka_offsets_for_times*(rk: PRDK, offsets: PRDKTopicPartitionList, time
     importc: "rd_kafka_offsets_for_times", dynlib: librdkafka.}
     ##Look up the offsets for the given partitions by timestamp.
 
-proc rd_kafka_topic_partition_list_set_offset*(
-    rktprlist: PRDKTopicPartitionList, 
-    topic: cstring,
-    partition: int32_t,
-    offset: int64_t): RDKResponseError {.cdecl,
-    importc: "rd_kafka_topic_partition_list_set_offset", dynlib: librdkafka.}
-    ##Set offset to offset for topic and partition.
-
 #******************************************************************
 # 								  ##
 #  Consumer API                                                   ##
@@ -1053,6 +1045,13 @@ proc rd_kafka_subscribe*(rk: PRDK, topic: PRDKTopicPartitionList): RDKResponseEr
 proc rd_kafka_poll_set_consumer*(rk: PRDK): RDKResponseError {.cdecl,
     importc: "rd_kafka_poll_set_consumer", dynlib: librdkafka.}
 
+proc rd_kafka_topic_partition_available*(rk: PRDK,
+    partition: cint): cint {.cdecl,
+    importc: "rd_kafka_topic_partition_available", dynlib: librdkafka.}
+    ## Check if partition is available (has a leader broker).
+    ## Returns 1 if the partition is available, else 0.
+    ## Warning This function must only be called from inside a partitioner function
+
 proc rd_kafka_topic_partition_list_new*(size: cint): PRDKTopicPartitionList {.cdecl
     importc: "rd_kafka_topic_partition_list_new", dynlib: librdkafka.}
     ##Create a new list/vector Topic+Partition container.
@@ -1064,11 +1063,40 @@ proc rd_kafka_topic_partition_list_add*(
     importc: "rd_kafka_topic_partition_list_add", dynlib: librdkafka.}
     ##Add topic+partition to list
 
+proc rd_kafka_topic_partition_list_set_offset*(
+    rktprlist: PRDKTopicPartitionList, 
+    topic: cstring,
+    partition: cint,
+    offset: int64_t): RDKResponseError {.cdecl,
+    importc: "rd_kafka_topic_partition_list_set_offset", dynlib: librdkafka.}
+    ##Set offset to offset for topic and partition.
+
+proc rd_kafka_topic_partition_list_del*(
+    rktparlist: PRDKTopicPartitionList,
+    topic: cstring,
+    partition: cint): cint {.cdecl,
+    importc: "rd_kafka_topic_partition_list_del", dynlib: librdkafka.}
+    ## Delete partition from list.
+    ## Returns 1 if partition was found (and removed), else 0.
+
+proc rd_kafka_topic_partition_list_del_by_idx*(
+    rktparlist: PRDKTopicPartitionList,
+    idx: cint): cint {.cdecl,
+    importc: "rd_kafka_topic_partition_list_del_by_idx", dynlib: librdkafka.}
+    ## Delete partition from list by elems[] index.
+    ## Returns 1 if partition was found (and removed), else 0.
+
 proc rd_kafka_topic_partition_list_destroy*(
-    topicPartitionList: PRDKTopicPartitionList
-) {.cdecl,
- importc: "rd_kafka_topic_partition_list_destroy", dynlib: librdkafka.} 
- ##Free all resources used by the list and the list itself.
+    topicPartitionList: PRDKTopicPartitionList) {.cdecl,
+    importc: "rd_kafka_topic_partition_list_destroy", dynlib: librdkafka.} 
+    ##Free all resources used by the list and the list itself.
+
+proc rd_kafka_topic_partition_list_find*(
+    topicPartitionList: PRDKTopicPartitionList,
+    topic: cstring,
+    partition: cint): PRDKTopicPartition {.cdecl,
+    importc: "rd_kafka_topic_partition_list_find", dynlib: librdkafka.}
+    ##Find element by topic and partition.
 
 proc rd_kafka_consumer_close*(rk: PRDK): RDKResponseError {.cdecl
     importc: "rd_kafka_consumer_close", dynlib: librdkafka.}
